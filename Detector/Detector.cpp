@@ -1,189 +1,189 @@
-#include "Detector.h"
+ï»¿#include "Detector.h"
 namespace Detect {
 	auto ImgProcessor::thresholdBookmark(const cv::Mat& img) -> cv::Mat {
-		//Ôö¼Ó¶Ô±È¶È
+		//å¢åŠ å¯¹æ¯”åº¦
 		cv::Mat imgContrast, result;
-		double alpha = 1.5; // ¶Ô±È¶È¿ØÖÆÏµÊı
-		int beta = 0; // ÁÁ¶È¿ØÖÆÖµ
-		img.convertTo(imgContrast, -1, alpha, beta); // Ó¦ÓÃ¶Ô±È¶ÈºÍÁÁ¶Èµ÷Õû
-		//¶şÖµ»¯
-        cv::cvtColor(imgContrast, imgContrast, cv::COLOR_BGR2GRAY);
+		double alpha = 1.5; // å¯¹æ¯”åº¦æ§åˆ¶ç³»æ•°
+		int beta = 0; // äº®åº¦æ§åˆ¶å€¼
+		img.convertTo(imgContrast, -1, alpha, beta); // åº”ç”¨å¯¹æ¯”åº¦å’Œäº®åº¦è°ƒæ•´
+		//äºŒå€¼åŒ–
+		cv::cvtColor(imgContrast, imgContrast, cv::COLOR_BGR2GRAY);
 		cv::threshold(imgContrast, result, 100, 255, cv::THRESH_BINARY);
-        // ÅòÕÍ²Ù×÷
-        if (DILATE > 0) {
-            cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-            cv::dilate(result, result, dilateElement, cv::Point(-1, -1), DILATE);
-        }
+		// è†¨èƒ€æ“ä½œ
+		if (DILATE > 0) {
+			cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+			cv::dilate(result, result, dilateElement, cv::Point(-1, -1), DILATE);
+		}
 
-        // ¸¯Ê´²Ù×÷
-        if (ERODE > 0) {
-            cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-            cv::erode(result, result, erodeElement, cv::Point(-1, -1), ERODE);
-        }
+		// è…èš€æ“ä½œ
+		if (ERODE > 0) {
+			cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+			cv::erode(result, result, erodeElement, cv::Point(-1, -1), ERODE);
+		}
 		return result;
 	}
 	auto ImgProcessor::insideprocess(const cv::Mat& img) -> std::vector<insidemarkpoint> {
-		//insideÊÇÖ¸ÄÚ²¿µÄÊéÇ©ºĞ£¬ËüÓĞÇ¶Ì×µÄÁ½¸öÂÖÀª£¬ÕâÀï·µ»ØÍâÂÖÀªµÄµã
-        std::vector<std::vector<cv::Point>> contours;
-        std::vector<cv::Vec4i> hierarchy;
-        cv::Mat iimage = img;
-        // ²éÕÒÂÖÀª
-        cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+		//insideæ˜¯æŒ‡å†…éƒ¨çš„ä¹¦ç­¾ç›’ï¼Œå®ƒæœ‰åµŒå¥—çš„ä¸¤ä¸ªè½®å»“ï¼Œè¿™é‡Œè¿”å›å¤–è½®å»“çš„ç‚¹
+		std::vector<std::vector<cv::Point>> contours;
+		std::vector<cv::Vec4i> hierarchy;
+		cv::Mat iimage = img;
+		// æŸ¥æ‰¾è½®å»“
+		cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
 
-        std::vector<insidemarkpoint> insidePoints;
+		std::vector<insidemarkpoint> insidePoints;
 
-        for (int idx = 0; idx < hierarchy.size(); idx = hierarchy[idx][0])
-        {
-            if (hierarchy[idx][2] < 0 && hierarchy[idx][3] == -1) // Ìø¹ıÃ»ÓĞ×ÓÂÖÀªµÄÂÖÀª
-                continue;
+		for (int idx = 0; idx < hierarchy.size(); idx = hierarchy[idx][0])
+		{
+			if (hierarchy[idx][2] < 0 && hierarchy[idx][3] == -1) // è·³è¿‡æ²¡æœ‰å­è½®å»“çš„è½®å»“
+				continue;
 
-            cv::RotatedRect rotatedRect = cv::minAreaRect(contours[idx]);
+			cv::RotatedRect rotatedRect = cv::minAreaRect(contours[idx]);
 
-            // È·±£Ğı×ª¾ØĞÎµÄÃæ»ıÔÚÔ¤ÆÚ·¶Î§ÄÚ
-            if (rotatedRect.size.area() < MIN_AREA || rotatedRect.size.area() > MAX_AREA) continue;
+			// ç¡®ä¿æ—‹è½¬çŸ©å½¢çš„é¢ç§¯åœ¨é¢„æœŸèŒƒå›´å†…
+			if (rotatedRect.size.area() < MIN_AREA || rotatedRect.size.area() > MAX_AREA) continue;
 
 
-            cv::Point2f rectPoints[4];
-            rotatedRect.points(rectPoints); // »ñÈ¡Ğı×ª¾ØĞÎµÄËÄ¸ö½Çµã
+			cv::Point2f rectPoints[4];
+			rotatedRect.points(rectPoints); // è·å–æ—‹è½¬çŸ©å½¢çš„å››ä¸ªè§’ç‚¹
 
-            // È·±£½Çµã´Ó×óµ½ÓÒÅÅĞò
-            std::sort(rectPoints, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-                return a.x < b.x;
-                });
+			// ç¡®ä¿è§’ç‚¹ä»å·¦åˆ°å³æ’åº
+			std::sort(rectPoints, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
+				return a.x < b.x;
+				});
 
-            // ¶Ô×ó²àÁ½µãºÍÓÒ²àÁ½µã·Ö±ğ°´yÖµÅÅĞò£¬È·±£l1, l2ÊÇ×óÉÏºÍ×óÏÂ£¬r1, r2ÊÇÓÒÉÏºÍÓÒÏÂ
-            std::sort(rectPoints, rectPoints + 2, [](const cv::Point2f& a, const cv::Point2f& b) {
-                return a.y < b.y;
-                });
-            std::sort(rectPoints + 2, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-                return a.y < b.y;
-                });
+			// å¯¹å·¦ä¾§ä¸¤ç‚¹å’Œå³ä¾§ä¸¤ç‚¹åˆ†åˆ«æŒ‰yå€¼æ’åºï¼Œç¡®ä¿l1, l2æ˜¯å·¦ä¸Šå’Œå·¦ä¸‹ï¼Œr1, r2æ˜¯å³ä¸Šå’Œå³ä¸‹
+			std::sort(rectPoints, rectPoints + 2, [](const cv::Point2f& a, const cv::Point2f& b) {
+				return a.y < b.y;
+				});
+			std::sort(rectPoints + 2, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
+				return a.y < b.y;
+				});
 
-            insidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
-            insidePoints.push_back(points);
-        }
+			insidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
+			insidePoints.push_back(points);
+		}
 
-        // ¸ù¾İ¾ØĞÎµÄ×óÉÏ½Çµã´Ó×óµ½ÓÒÅÅĞò
-        std::sort(insidePoints.begin(), insidePoints.end(), [](const insidemarkpoint& a, const insidemarkpoint& b) {
-            return a.l1.x < b.l1.x;
-            });
-        return insidePoints;
+		// æ ¹æ®çŸ©å½¢çš„å·¦ä¸Šè§’ç‚¹ä»å·¦åˆ°å³æ’åº
+		std::sort(insidePoints.begin(), insidePoints.end(), [](const insidemarkpoint& a, const insidemarkpoint& b) {
+			return a.l1.x < b.l1.x;
+			});
+		return insidePoints;
 	}
-    auto ImgProcessor::outsideprocess(const cv::Mat& img) -> std::vector<outsidemarkpoint> {
-        std::vector<std::vector<cv::Point>> contours;
-        std::vector<cv::Vec4i> hierarchy;
-        cv::Mat iimage = img.clone(); // Clone to avoid modifying the original image
+	auto ImgProcessor::outsideprocess(const cv::Mat& img) -> std::vector<outsidemarkpoint> {
+		std::vector<std::vector<cv::Point>> contours;
+		std::vector<cv::Vec4i> hierarchy;
+		cv::Mat iimage = img.clone(); // Clone to avoid modifying the original image
 
-        // ²éÕÒÂÖÀª
-        cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+		// æŸ¥æ‰¾è½®å»“
+		cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
 
-        std::vector<outsidemarkpoint> outsidePoints;
+		std::vector<outsidemarkpoint> outsidePoints;
 
-        for (int idx = 0; idx < hierarchy.size(); ++idx) {
-            // ÕÒµ½¼ÈÃ»ÓĞ×ÓÂÖÀªÒ²Ã»ÓĞ¸¸ÂÖÀªµÄÂÖÀª
-            if (hierarchy[idx][2] == -1 && hierarchy[idx][3] == -1) {
-                cv::RotatedRect rotatedRect = cv::minAreaRect(contours[idx]);
+		for (int idx = 0; idx < hierarchy.size(); ++idx) {
+			// æ‰¾åˆ°æ—¢æ²¡æœ‰å­è½®å»“ä¹Ÿæ²¡æœ‰çˆ¶è½®å»“çš„è½®å»“
+			if (hierarchy[idx][2] == -1 && hierarchy[idx][3] == -1) {
+				cv::RotatedRect rotatedRect = cv::minAreaRect(contours[idx]);
 
-                // »ùÓÚÂÖÀªÃæ»ı¹ıÂË²»·ûºÏ´óĞ¡ÒªÇóµÄ¾ØĞÎ
-                if (rotatedRect.size.area() < MIN_AREA || rotatedRect.size.area() > MAX_AREA)
-                    continue;
+				// åŸºäºè½®å»“é¢ç§¯è¿‡æ»¤ä¸ç¬¦åˆå¤§å°è¦æ±‚çš„çŸ©å½¢
+				if (rotatedRect.size.area() < MIN_AREA || rotatedRect.size.area() > MAX_AREA)
+					continue;
 
-                cv::Point2f rectPoints[4];
-                rotatedRect.points(rectPoints); // »ñÈ¡Ğı×ª¾ØĞÎµÄËÄ¸ö½Çµã
+				cv::Point2f rectPoints[4];
+				rotatedRect.points(rectPoints); // è·å–æ—‹è½¬çŸ©å½¢çš„å››ä¸ªè§’ç‚¹
 
-                // ÅÅĞòºÍµ÷ÕûrectPointsÒÔÆ¥Åäoutsidemarkpoint½á¹¹
-                std::sort(rectPoints, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-                    return a.x < b.x;
-                    });
+				// æ’åºå’Œè°ƒæ•´rectPointsä»¥åŒ¹é…outsidemarkpointç»“æ„
+				std::sort(rectPoints, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
+					return a.x < b.x;
+					});
 
-                // ¶Ô×ó²àÁ½µãºÍÓÒ²àÁ½µã·Ö±ğ°´yÖµÅÅĞò
-                std::sort(rectPoints, rectPoints + 2, [](const cv::Point2f& a, const cv::Point2f& b) {
-                    return a.y < b.y;
-                    });
-                std::sort(rectPoints + 2, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-                    return a.y < b.y;
-                    });
+				// å¯¹å·¦ä¾§ä¸¤ç‚¹å’Œå³ä¾§ä¸¤ç‚¹åˆ†åˆ«æŒ‰yå€¼æ’åº
+				std::sort(rectPoints, rectPoints + 2, [](const cv::Point2f& a, const cv::Point2f& b) {
+					return a.y < b.y;
+					});
+				std::sort(rectPoints + 2, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
+					return a.y < b.y;
+					});
 
-                // ½«ÅÅĞòºóµÄµãÌí¼Óµ½½á¹ûÏòÁ¿ÖĞ
-                outsidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
-                outsidePoints.push_back(points);
-            }
-        }
+				// å°†æ’åºåçš„ç‚¹æ·»åŠ åˆ°ç»“æœå‘é‡ä¸­
+				outsidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
+				outsidePoints.push_back(points);
+			}
+		}
 
-        // ¸ù¾İ¾ØĞÎµÄ×óÉÏ½Çµã´Ó×óµ½ÓÒÅÅĞò
-        std::sort(outsidePoints.begin(), outsidePoints.end(), [](const outsidemarkpoint& a, const outsidemarkpoint& b) {
-            return a.l1.x < b.l1.x;
-            });
+		// æ ¹æ®çŸ©å½¢çš„å·¦ä¸Šè§’ç‚¹ä»å·¦åˆ°å³æ’åº
+		std::sort(outsidePoints.begin(), outsidePoints.end(), [](const outsidemarkpoint& a, const outsidemarkpoint& b) {
+			return a.l1.x < b.l1.x;
+			});
 
-        return outsidePoints;
-    }
-    void ImgProcessor::drawPoints(const cv::Mat& img,
-        const std::vector<insidemarkpoint>& insidePoints,
-        const std::vector<outsidemarkpoint>& outsidePoints,
-        const std::string& winname) {
-        cv::Mat frame= img.clone();
-        // ÎªÍâ²¿µã»æÖÆ
-        for (const auto& point : outsidePoints) {
-            // Ê¹ÓÃºìÉ«±ê¼ÇÍâ²¿µã
-            drawPoint(frame, point, cv::Scalar(0, 0, 255));
-        }
-        // ÎªÄÚ²¿µã»æÖÆ
-        for (const auto& point : insidePoints) {
-            // Ê¹ÓÃÂÌÉ«±ê¼ÇÄÚ²¿µã
-            drawPoint(frame, point, cv::Scalar(0, 255, 0));
-        }
-
-
-
-        // ÏÔÊ¾´øÓĞµãºÍ×ø±êµÄÍ¼Ïñ
-        cv::imshow(winname, frame);
-        cv::waitKey(1);
-    }
+		return outsidePoints;
+	}
+	void ImgProcessor::drawPoints(const cv::Mat& img,
+		const std::vector<insidemarkpoint>& insidePoints,
+		const std::vector<outsidemarkpoint>& outsidePoints,
+		const std::string& winname) {
+		cv::Mat frame= img.clone();
+		// ä¸ºå¤–éƒ¨ç‚¹ç»˜åˆ¶
+		for (const auto& point : outsidePoints) {
+			// ä½¿ç”¨çº¢è‰²æ ‡è®°å¤–éƒ¨ç‚¹
+			drawPoint(frame, point, cv::Scalar(0, 0, 255));
+		}
+		// ä¸ºå†…éƒ¨ç‚¹ç»˜åˆ¶
+		for (const auto& point : insidePoints) {
+			// ä½¿ç”¨ç»¿è‰²æ ‡è®°å†…éƒ¨ç‚¹
+			drawPoint(frame, point, cv::Scalar(0, 255, 0));
+		}
 
 
-    template <typename T>
-    void ImgProcessor::drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color) {
-        // »æÖÆÃ¿¸öµã
-        cv::circle(img, point.l1, 5, color, -1); // ×óÉÏ½Çµã
-        cv::circle(img, point.l2, 5, color, -1); // ×óÏÂ½Çµã
-        cv::circle(img, point.r1, 5, color, -1); // ÓÒÉÏ½Çµã
-        cv::circle(img, point.r2, 5, color, -1); // ÓÒÏÂ½Çµã
 
-        // °´Ë³ĞòÁ¬ÆğÀ´
-        cv::line(img, point.l1, point.r1, color, 2);
-        cv::line(img, point.r1, point.r2, color, 2);
-        cv::line(img, point.r2, point.l2, color, 2);
-        cv::line(img, point.l2, point.l1, color, 2);
-
-        // ±ê³öÃ¿¸öµãµÄ×ø±ê
-        std::ostringstream l1Text, l2Text, r1Text, r2Text;
-        l1Text << "(" << point.l1.x << "," << point.l1.y << ")";
-        l2Text << "(" << point.l2.x << "," << point.l2.y << ")";
-        r1Text << "(" << point.r1.x << "," << point.r1.y << ")";
-        r2Text << "(" << point.r2.x << "," << point.r2.y << ")";
-
-        cv::putText(img, l1Text.str(), point.l1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-        cv::putText(img, l2Text.str(), point.l2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-        cv::putText(img, r1Text.str(), point.r1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-        cv::putText(img, r2Text.str(), point.r2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-
-        // ¼ÆËãÖĞĞÄµã×ø±ê
-        cv::Point2f center = (point.l1 + point.r2) * 0.5f;
-        std::ostringstream centerText;
-        centerText << "Center: (" << center.x << "," << center.y << ")";
+		// æ˜¾ç¤ºå¸¦æœ‰ç‚¹å’Œåæ ‡çš„å›¾åƒ
+		cv::imshow(winname, frame);
+		cv::waitKey(1);
+	}
 
 
-        // ¼ÆËã²¢ÏÔÊ¾¾ØĞÎµÄ´óĞ¡£¨¿í¶ÈºÍ¸ß¶È£©
-        float width = cv::norm(point.l1 - point.r1);
-        float height = cv::norm(point.l1 - point.l2);
-        std::ostringstream sizeText;
-        sizeText << "Size: " << width << "x" << height << "=" << width * height;
+	template <typename T>
+	void ImgProcessor::drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color) {
+		// ç»˜åˆ¶æ¯ä¸ªç‚¹
+		cv::circle(img, point.l1, 5, color, -1); // å·¦ä¸Šè§’ç‚¹
+		cv::circle(img, point.l2, 5, color, -1); // å·¦ä¸‹è§’ç‚¹
+		cv::circle(img, point.r1, 5, color, -1); // å³ä¸Šè§’ç‚¹
+		cv::circle(img, point.r2, 5, color, -1); // å³ä¸‹è§’ç‚¹
 
-        cv::circle(img, center, 5, cv::Scalar(0, 255, 255), -1); // ÓÒÏÂ½Çµã
-        cv::Point2f sizePos = center + cv::Point2f(20, 20); // ½«´óĞ¡ĞÅÏ¢Î»ÖÃÉÔÎ¢ÉÏÒÆ£¬ÒÔÃâÓëÖĞĞÄµã×ø±êÖØµş
+		// æŒ‰é¡ºåºè¿èµ·æ¥
+		cv::line(img, point.l1, point.r1, color, 2);
+		cv::line(img, point.r1, point.r2, color, 2);
+		cv::line(img, point.r2, point.l2, color, 2);
+		cv::line(img, point.l2, point.l1, color, 2);
 
-        cv::putText(img, centerText.str(), sizePos, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // Ê¹ÓÃÑóºìÉ«±ê³öÖĞĞÄµã×ø±ê
-        cv::putText(img, sizeText.str(), sizePos + cv::Point2f(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // Ê¹ÓÃÑóºìÉ«±ê³ö¾ØĞÎ´óĞ¡
+		// æ ‡å‡ºæ¯ä¸ªç‚¹çš„åæ ‡
+		std::ostringstream l1Text, l2Text, r1Text, r2Text;
+		l1Text << "(" << point.l1.x << "," << point.l1.y << ")";
+		l2Text << "(" << point.l2.x << "," << point.l2.y << ")";
+		r1Text << "(" << point.r1.x << "," << point.r1.y << ")";
+		r2Text << "(" << point.r2.x << "," << point.r2.y << ")";
+
+		cv::putText(img, l1Text.str(), point.l1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+		cv::putText(img, l2Text.str(), point.l2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+		cv::putText(img, r1Text.str(), point.r1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+		cv::putText(img, r2Text.str(), point.r2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+
+		// è®¡ç®—ä¸­å¿ƒç‚¹åæ ‡
+		cv::Point2f center = (point.l1 + point.r2) * 0.5f;
+		std::ostringstream centerText;
+		centerText << "Center: (" << center.x << "," << center.y << ")";
+
+
+		// è®¡ç®—å¹¶æ˜¾ç¤ºçŸ©å½¢çš„å¤§å°ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰
+		float width = cv::norm(point.l1 - point.r1);
+		float height = cv::norm(point.l1 - point.l2);
+		std::ostringstream sizeText;
+		sizeText << "Size: " << width << "x" << height << "=" << width * height;
+
+		cv::circle(img, center, 5, cv::Scalar(0, 255, 255), -1); // å³ä¸‹è§’ç‚¹
+		cv::Point2f sizePos = center + cv::Point2f(20, 20); // å°†å¤§å°ä¿¡æ¯ä½ç½®ç¨å¾®ä¸Šç§»ï¼Œä»¥å…ä¸ä¸­å¿ƒç‚¹åæ ‡é‡å 
+
+		cv::putText(img, centerText.str(), sizePos, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // ä½¿ç”¨æ´‹çº¢è‰²æ ‡å‡ºä¸­å¿ƒç‚¹åæ ‡
+		cv::putText(img, sizeText.str(), sizePos + cv::Point2f(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // ä½¿ç”¨æ´‹çº¢è‰²æ ‡å‡ºçŸ©å½¢å¤§å°
    
-    }
+	}
 }

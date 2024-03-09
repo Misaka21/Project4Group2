@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #ifndef RM2024_DETECTOR_H
 #define RM2024_DETECTOR_H
@@ -18,10 +18,10 @@
 #include <numeric>
 #include <limits>
 
-#define MIN_AREA 100000 // ¶¨Òå×îĞ¡Ãæ»ıãĞÖµ
-#define MAX_AREA 200000 // ¶¨Òå×î´óÃæ»ıãĞÖµ
-#define DILATE 3 // ¶¨ÒåÅòÕÍÏµÊı
-#define ERODE 3  // ¶¨Òå¸¯Ê´ÏµÊı
+#define MIN_AREA 100000 // å®šä¹‰æœ€å°é¢ç§¯é˜ˆå€¼
+#define MAX_AREA 200000 // å®šä¹‰æœ€å¤§é¢ç§¯é˜ˆå€¼
+#define DILATE 3 // å®šä¹‰è†¨èƒ€ç³»æ•°
+#define ERODE 3  // å®šä¹‰è…èš€ç³»æ•°
 typedef struct
 {
 	cv::Point2f l1, l2, r1, r2;
@@ -44,7 +44,7 @@ namespace Detect {
 			const std::vector<outsidemarkpoint>& outsidePoints,
 			const std::string& winname);
 
-		
+
 	private:
 		template <typename T>
 		void drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color);
