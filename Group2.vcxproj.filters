@@ -32,5 +32,8 @@
     <ClInclude Include="Detector\Detector.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="hak_cam\hik_camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

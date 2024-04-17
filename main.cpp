@@ -4,36 +4,13 @@
 #include <iostream>
 #include"hak_cam/hik_camera.h"
 #include"main.h"
-
+#include <Windows.h>
 int main()
 {
 	HikCam cam;
-	cv::Mat img;
-	Detect::ImgProcessor detector;
-
-	while (1){
-		img = cam.HikCapture();
-		if (img.empty()) continue;
-
-		cv::Mat thresholdpic=detector.thresholdBookmark(img);
-
-		std::vector<insidemarkpoint> points1;
-		std::vector<outsidemarkpoint> points2;
-		points1=detector.insideprocess(thresholdpic);
-
-		points2=detector.outsideprocess(thresholdpic);
-		
-		detector.drawPoints(thresholdpic, points1, points2, "name1");
-		detector.drawPoints(img, points1, points2,"name");
-		cv::imshow("img", img);
-		char key = cv::waitKey(1);
-		if (key == 27) { // ESC key
-			break;
-		}
-		img.release();
-	}
-
-	std::cout << "Hello World!\n";
+	Sleep(5000);
+	//while(1)
+	cam.Grab();
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

@@ -7,8 +7,8 @@ namespace Detect {
 		int beta = 0; // 亮度控制值
 		img.convertTo(imgContrast, -1, alpha, beta); // 应用对比度和亮度调整
 		//二值化
-		cv::cvtColor(imgContrast, imgContrast, cv::COLOR_BGR2GRAY);
-		cv::threshold(imgContrast, result, 100, 255, cv::THRESH_BINARY);
+		//cv::cvtColor(imgContrast, imgContrast, cv::COLOR_BGR2GRAY);
+		cv::threshold(imgContrast, result, 200, 255, cv::THRESH_BINARY|cv::THRESH_OTSU);
 		// 膨胀操作
 		if (DILATE > 0) {
 			cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
@@ -136,6 +136,8 @@ namespace Detect {
 
 
 		// 显示带有点和坐标的图像
+		cv::namedWindow(winname, cv::WINDOW_FREERATIO);
+		cv::resizeWindow(winname, cv::Size(720, 540));
 		cv::imshow(winname, frame);
 		cv::waitKey(1);
 	}

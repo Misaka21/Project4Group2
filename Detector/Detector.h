@@ -18,15 +18,16 @@
 #include <numeric>
 #include <limits>
 
-#define MIN_AREA 100000 // 定义最小面积阈值
-#define MAX_AREA 200000 // 定义最大面积阈值
+#define MIN_AREA 200000 // 定义最小面积阈值
+#define MAX_AREA 3000000 // 定义最大面积阈值
 #define DILATE 3 // 定义膨胀系数
-#define ERODE 3  // 定义腐蚀系数
+#define ERODE 1  // 定义腐蚀系数
+
 typedef struct
 {
 	cv::Point2f l1, l2, r1, r2;
 }insidemarkpoint;
-typedef struct outsidemarkpoint
+typedef struct
 {
 	cv::Point2f l1, l2, r1, r2;
 }outsidemarkpoint;
@@ -43,15 +44,10 @@ namespace Detect {
 			const std::vector<insidemarkpoint>& insidePoints,
 			const std::vector<outsidemarkpoint>& outsidePoints,
 			const std::string& winname);
-
-
 	private:
 		template <typename T>
 		void drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color);
 	};
-
-
-
 }
 
 
