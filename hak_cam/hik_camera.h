@@ -24,6 +24,29 @@ typedef enum GAIN_MODE_
     ONCE,
     CONTINUOUS
 } GAIN_MODE;
+
+typedef struct CAM_INFO
+{
+	unsigned int nWidth;//图像宽度
+	unsigned int nHeight;//图像高度
+	unsigned int nTriggerMode;//触发模式
+	unsigned int nTriggerSource;//触发源
+	unsigned int nTriggerActivation;//触发极性
+	unsigned int nExposureTime;//曝光时间
+	unsigned int nGain;//增益
+	unsigned int nGamma;//Gamma使能
+	unsigned int nPacketSize;//包大小
+	unsigned int nHeartBeatTimeout;//心跳超时
+	unsigned int nGainMode;//增益模式
+	unsigned int nBalanceRatioSelector;//白平衡比例选择
+	unsigned int nBalanceRatio;//白平衡比例
+	unsigned int nBalanceWhiteAuto;//白平衡白平衡自动
+	unsigned int nBalanceWhite;//白平衡白平衡
+	unsigned int nBalanceRed;
+	unsigned int nBalanceBlue;
+	unsigned int nGammaEnable;//Gamma使能
+	unsigned int nGammaValue;//Gamma值   
+};
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser);
 class HikCam {
 

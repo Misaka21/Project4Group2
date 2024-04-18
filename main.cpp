@@ -8,8 +8,10 @@
 int main()
 {
 	HikCam cam;
-	Sleep(5000);
+	
 	//while(1)
+	cam.Grab();
+	cam.Grab();
 	cam.Grab();
 }
 

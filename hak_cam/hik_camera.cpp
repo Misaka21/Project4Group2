@@ -78,7 +78,7 @@ HikCam::HikCam() {
     unsigned int nIndex = 0;
 
 
-    // ch:选择设备并创建句柄 | Select device and create _handle
+    // ch:选择设备并创建句柄 | Select device and create handle
     _nRet = MV_CC_CreateHandle(&_handle, stDeviceList.pDeviceInfo[nIndex]);
     if (MV_OK != _nRet)
     {
@@ -111,17 +111,23 @@ HikCam::HikCam() {
             printf("Warning: Get Packet Size fail _nRet [0x%x]!", nPacketSize);
         }
     }
-    _nRet = MV_CC_SetIntValue(_handle, "GevHeartbeatTimeout", 3000);
+    //_nRet = MV_CC_SetIntValue(_handle, "GevHeartbeatTimeout", 3000);
 
-    // ch:设置触发模式为off | eb:Set trigger mode as off
+    // ch:设置触发模式为on | eb:Set trigger mode as on
     _nRet = MV_CC_SetEnumValue(_handle, "TriggerMode", MV_TRIGGER_MODE_ON);
     if (MV_OK != _nRet)
     {
         printf("Set Trigger Mode fail! _nRet [0x%x]\n", _nRet);
         //break;
     }
-    _nRet = MV_CC_SetEnumValue(_handle, "TriggerSource", 7);
 
+    // ch:设置软触发模式 | en:Set Trigger Mode and Set Trigger Source
+    _nRet = MV_CC_SetEnumValueByString(_handle, "TriggerSource", "Software");
+    if (MV_OK != _nRet)
+    {
+        printf("Set Trigger Source fail! nRet [0x%x]\n", _nRet);
+        //break;
+    }
 
     // ch:注册抓图回调 | en:Register image callback
     _nRet = MV_CC_RegisterImageCallBackEx(_handle, ImageCallBackEx, _handle);
@@ -137,28 +143,35 @@ HikCam::HikCam() {
         printf("Start Grabbing fail! _nRet [0x%x]\n", _nRet);
         //break;
     }
-    MV_CC_SetCommandValue(_handle, "AcquisitionStart");
-    if (MV_OK != _nRet)
-    {
-        printf("Start Grabbing fail! _nRet [0x%x]\n", _nRet);
-        //break;
-    }
-
-
 }
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
 {
+    //为了等MV_CC_GetImageBuffer调用后再发送软触发命令
+    Sleep(30);
     cv::Mat srcImage;
-
+    if (pFrameInfo)
+    {
+        printf("Get One Frame: Width[%d], Height[%d], nFrameNum[%d]\n",
+            pFrameInfo->nWidth, pFrameInfo->nHeight, pFrameInfo->nFrameNum);
+    }
     std::cout << "Hello World!\n";
     srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
     cv::imshow("a", srcImage);
-
     char key = cv::waitKey(1);
+    
 
 }
 void HikCam::Grab() {
+
     _nRet = MV_CC_SetCommandValue(_handle, "TriggerSoftware");
+    if (MV_OK != _nRet)
+    {
+        printf("Send Trigger Software command fail! nRet [0x%x]\n", _nRet);
+        //break;
+    }
+    Sleep(500);
+    //如果帧率过小或TriggerDelay很大，可能会出现软触发命令没有全部起效而导致取不到数据的情况
+
 }
 HikCam::~HikCam() {
     // ch:停止取流 | en:Stop grab image
@@ -185,7 +198,7 @@ HikCam::~HikCam() {
         //break;
     }
 
-    // ch:销毁句柄 | en:Destroy _handle
+    // ch:销毁句柄 | en:Destroy handle
     _nRet = MV_CC_DestroyHandle(_handle);
     if (MV_OK != _nRet)
     {
