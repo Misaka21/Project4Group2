@@ -148,23 +148,7 @@ HikCam::HikCam(CAM_INFO Info) {
         //break;
     }
 }
-void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
-{
-    //为了等MV_CC_GetImageBuffer调用后再发送软触发命令
-    Sleep(30);
-    cv::Mat srcImage;
-    if (pFrameInfo)
-    {
-        printf("[INFO]: Get One Frame: Width[%d], Height[%d], nFrameNum[%d]\n",
-            pFrameInfo->nWidth, pFrameInfo->nHeight, pFrameInfo->nFrameNum);
-    }
-    //std::cout << "Hello World!\n";
-    srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
-    cv::imshow("a", srcImage);
-    char key = cv::waitKey(1);
-    
 
-}
 void HikCam::Grab() {
 
     _nRet = MV_CC_SetCommandValue(_handle, "TriggerSoftware");
@@ -176,7 +160,6 @@ void HikCam::Grab() {
     }
     Sleep(500);
     //如果帧率过小或TriggerDelay很大，可能会出现软触发命令没有全部起效而导致取不到数据的情况
-
 }
 void HikCam::SetAttribute(CAM_INFO Info) {
     // 设置触发模式

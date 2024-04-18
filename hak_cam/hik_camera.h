@@ -2,15 +2,9 @@
 #define HIK_CAMERA_H
 
 #include <stdio.h>
+#include <iostream>
 #include <Windows.h>
 #include "MvCameraControl.h"
-// OpenCV
-#include <opencv2/core.hpp>
-#include <opencv2/core/base.hpp>
-#include <opencv2/core/mat.hpp>
-#include <opencv2/core/types.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
 
 #define YELLOW_START "\033[33m"
 #define RED_START "\033[31m"

@@ -1,10 +1,31 @@
 ﻿// Group2.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 
-#include <iostream>
-#include"hak_cam/hik_camera.h"
 #include"main.h"
-#include <Windows.h>
+
+void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
+{
+	//为了等MV_CC_GetImageBuffer调用后再发送软触发命令
+	Sleep(30);
+	cv::Mat srcImage;
+	if (pFrameInfo)
+	{
+		printf("[INFO]: Get One Frame: Width[%d], Height[%d], nFrameNum[%d]\n",
+			pFrameInfo->nWidth, pFrameInfo->nHeight, pFrameInfo->nFrameNum);
+	}
+	srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
+	/*******从这里开始写代码********/
+
+
+
+
+
+
+
+	/*******从这里开始建议不要动********/
+	cv::imshow("a", srcImage);
+	char key = cv::waitKey(1);
+}
 int main()
 {
 	CAM_INFO camInfo;
