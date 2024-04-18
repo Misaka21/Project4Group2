@@ -7,7 +7,16 @@
 #include <Windows.h>
 int main()
 {
-	HikCam cam;
+	CAM_INFO camInfo;
+	camInfo.setCamID(0)//设置相机ID
+		.setWidth(1920)//设置图像宽度
+		.setHeight(1080)//设置图像高度
+		.setOffsetX(100)//设置图像X偏移
+		.setOffsetY(100)//设置图像Y偏移
+		.setExpTime(5000)//设置曝光时间
+		.setGain(10)//设置增益
+		.setTrigger(SOFTWARE);//设置触发方式
+	HikCam cam(camInfo);
 	
 	//while(1)
 	cam.Grab();

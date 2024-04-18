@@ -12,63 +12,61 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
+#define YELLOW_START "\033[33m"
+#define RED_START "\033[31m"
+#define GREEN_START "\033[32m"
+#define COLOR_END "\033[0m"
+
+
 enum CONVERT_TYPE
 {
     OpenCV_Mat = 0,
     OpenCV_IplImage = 1,
 };
 
-typedef enum GAIN_MODE_
+typedef enum TRIGGERSOURCE
 {
-    OFF,
-    ONCE,
-    CONTINUOUS
-} GAIN_MODE;
+    SOFTWARE,
+    LINE0,
+    LINE2,
+} ;
 
-typedef struct CAM_INFO
-{
-	unsigned int nWidth;//图像宽度
-	unsigned int nHeight;//图像高度
-	unsigned int nTriggerMode;//触发模式
-	unsigned int nTriggerSource;//触发源
-	unsigned int nTriggerActivation;//触发极性
-	unsigned int nExposureTime;//曝光时间
-	unsigned int nGain;//增益
-	unsigned int nGamma;//Gamma使能
-	unsigned int nPacketSize;//包大小
-	unsigned int nHeartBeatTimeout;//心跳超时
-	unsigned int nGainMode;//增益模式
-	unsigned int nBalanceRatioSelector;//白平衡比例选择
-	unsigned int nBalanceRatio;//白平衡比例
-	unsigned int nBalanceWhiteAuto;//白平衡白平衡自动
-	unsigned int nBalanceWhite;//白平衡白平衡
-	unsigned int nBalanceRed;
-	unsigned int nBalanceBlue;
-	unsigned int nGammaEnable;//Gamma使能
-	unsigned int nGammaValue;//Gamma值   
+class CAM_INFO {
+public:
+    // 设置器方法允许链式调用
+    CAM_INFO& setCamID(int id) { _nCamID = id; return *this; }
+    CAM_INFO& setWidth(int width) { _nWidth = width; return *this; }
+    CAM_INFO& setHeight(int height) { _nHeight = height; return *this; }
+    CAM_INFO& setOffsetX(int offsetX) { _nOffsetX = offsetX; return *this; }
+    CAM_INFO& setOffsetY(int offsetY) { _nOffsetY = offsetY; return *this; }
+    CAM_INFO& setExpTime(float expTime) { _nExpTime = expTime; return *this; }
+    CAM_INFO& setGain(float gain) { _nGain = gain; return *this; }
+    CAM_INFO& setTrigger(TRIGGERSOURCE trg) { _trigger = trg; return *this; }
+    friend class HikCam;  
+
+private:
+    int _nCamID = -1;
+    int _nWidth = -1;
+    int _nHeight = -1;
+    int _nOffsetX = -1;
+    int _nOffsetY = -1;
+    float _nExpTime = -1;
+    float _nGain = -1;
+    TRIGGERSOURCE _trigger = SOFTWARE;
+
 };
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser);
 class HikCam {
-
 public:
-    HikCam();
+    HikCam(CAM_INFO Info);
     ~HikCam();
     void Grab();
-    /*实验性功能*/
-    //设置曝光时间
-    bool SetExposureTime(float ExposureTime);
-    //设置曝光增益
-    bool SetGAIN(int value, float ExpGain);
-    //自动白平衡
-    bool SetAutoBALANCE();
-    //手动白平衡
-    bool SetBALANCE(int value, unsigned int value_number);
-    //Gamma校正
-    bool SetGamma(bool set_status, unsigned int dGammaParam);
 private:
     int _nRet = MV_OK;
     void* _handle = NULL;
     bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo);
+    void SetAttribute(CAM_INFO Info);
+
 };
 
 #endif // HIK_CAMERA_H
