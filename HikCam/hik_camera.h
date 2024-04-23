@@ -12,13 +12,8 @@
 #define COLOR_END "\033[0m"
 
 
-enum CONVERT_TYPE
-{
-    OpenCV_Mat = 0,
-    OpenCV_IplImage = 1,
-};
 
-typedef enum TRIGGERSOURCE
+enum TRIGGERSOURCE
 {
     SOFTWARE,
     LINE0,

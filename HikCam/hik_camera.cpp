@@ -273,6 +273,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
         case SOFTWARE: return "SOFTWARE";
         case LINE0:    return "LINE0";
         case LINE2:    return "LINE2";
+        default: return"ERROR";
         }
     };
     printf("TriggerSource: %s\n", getTriggerSource(Info._trigger));
