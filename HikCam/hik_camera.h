@@ -1,7 +1,7 @@
 ﻿#ifndef HIK_CAMERA_H
 #define HIK_CAMERA_H
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <Windows.h>
 #include "Includes/MvCameraControl.h"
@@ -38,13 +38,13 @@ public:
     friend class HikCam;  
 
 private:
-    int _nCamID = -1;
-    int _nWidth = -1;
-    int _nHeight = -1;
-    int _nOffsetX = -1;
-    int _nOffsetY = -1;
-    float _nExpTime = -1;
-    float _nGain = -1;
+    int _nCamID = 0;
+    int _nWidth = 1440;
+    int _nHeight = 1080;
+    int _nOffsetX = 0;
+    int _nOffsetY = 0;
+    float _nExpTime = 1000;
+    float _nGain = 8;
     TRIGGERSOURCE _trigger = SOFTWARE;
 
 };

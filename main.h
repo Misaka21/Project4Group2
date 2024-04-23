@@ -7,7 +7,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core/core_c.h>
 
-#include"hik_cam/hik_camera.h"
+#include"HikCam/hik_camera.h"
 #include "Detector/Detector.h"
 
 
