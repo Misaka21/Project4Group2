@@ -1,191 +1,151 @@
 ﻿#include "Detector.h"
-namespace Detect {
-	auto ImgProcessor::thresholdBookmark(const cv::Mat& img) -> cv::Mat {
-		//增加对比度
-		cv::Mat imgContrast, result;
-		double alpha = 1.5; // 对比度控制系数
-		int beta = 0; // 亮度控制值
-		img.convertTo(imgContrast, -1, alpha, beta); // 应用对比度和亮度调整
-		//二值化
-		//cv::cvtColor(imgContrast, imgContrast, cv::COLOR_BGR2GRAY);
-		cv::threshold(imgContrast, result, 200, 255, cv::THRESH_BINARY|cv::THRESH_OTSU);
-		// 膨胀操作
-		if (DILATE > 0) {
-			cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-			cv::dilate(result, result, dilateElement, cv::Point(-1, -1), DILATE);
-		}
+#include "opencv2/imgproc.hpp"
 
-		// 腐蚀操作
-		if (ERODE > 0) {
-			cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-			cv::erode(result, result, erodeElement, cv::Point(-1, -1), ERODE);
-		}
-		return result;
-	}
-	auto ImgProcessor::insideprocess(const cv::Mat& img) -> std::vector<insidemarkpoint> {
-		//inside是指内部的书签盒，它有嵌套的两个轮廓，这里返回外轮廓的点
-		std::vector<std::vector<cv::Point>> contours;
-		std::vector<cv::Vec4i> hierarchy;
-		cv::Mat iimage = img;
-		// 查找轮廓
-		cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+namespace ImgProcess {
 
-		std::vector<insidemarkpoint> insidePoints;
+// Detector类的构造函数
+    Detector::Detector(
+            const int &bin_thres,
+            const LightParams &l,                                      // 光源参数
+            const ArmorParams &a)                                      // 装甲板参数
+            : binary_thres(bin_thres),  l(l), a(a)                      // 初始化成员变量
+    {
+    }
+    // 检测函数，接收一个图像，返回检测到的装甲板集合
+    std::vector<InsideBox> Detector::detect(const cv::Mat &input)
+    {
+        binary_img = preprocessImage(input);
+        lights_ = findPairs(binary_img); // 在二值图中找到光源
+        armors_ = matchLights(lights_);          // 匹配光源，识别出装甲板
 
-		for (int idx = 0; idx < hierarchy.size(); idx = hierarchy[idx][0])
-		{
-			if (hierarchy[idx][2] < 0 && hierarchy[idx][3] == -1) // 跳过没有子轮廓的轮廓
-				continue;
+        return armors_; // 返回检测到的装甲板集合
+    }
+    // 图像预处理函数，接收RGB图像，返回二值图
+    cv::Mat Detector::preprocessImage(const cv::Mat &gray_img)
+    {
+        cv::Mat binary_img;                                                        // 定义二值图
+        cv::threshold(gray_img, binary_img, binary_thres, 255, cv::THRESH_BINARY); // 应用二值化
 
-			cv::RotatedRect rotatedRect = cv::minAreaRect(contours[idx]);
+        return binary_img; // 返回二值图
+    }
 
-			// 确保旋转矩形的面积在预期范围内
-			if (rotatedRect.size.area() < MIN_AREA || rotatedRect.size.area() > MAX_AREA) continue;
+    std::vector<Pair> Detector::findPairs(const cv::Mat &binary_img)
+    {
+        using std::vector;
+        vector<vector<cv::Point>> contours;                                                            // 定义轮廓集合
+        vector<cv::Vec4i> hierarchy;                                                                   // 定义层级关系
+        cv::findContours(binary_img, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE); // 查找轮廓
 
+        vector<Pair> Pairs;            // 定义光源集合
 
-			cv::Point2f rectPoints[4];
-			rotatedRect.points(rectPoints); // 获取旋转矩形的四个角点
+        for (const auto &contour : contours)
+        { // 遍历所有轮廓
+            if (contour.size() < 5)
+                continue; // 如果轮廓点数小于5，跳过
 
-			// 确保角点从左到右排序
-			std::sort(rectPoints, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-				return a.x < b.x;
-				});
+            auto r_rect = cv::minAreaRect(contour); // 计算轮廓的最小外接矩形
+            auto pair = Pair(r_rect);             // 创建Light对象
 
-			// 对左侧两点和右侧两点分别按y值排序，确保l1, l2是左上和左下，r1, r2是右上和右下
-			std::sort(rectPoints, rectPoints + 2, [](const cv::Point2f& a, const cv::Point2f& b) {
-				return a.y < b.y;
-				});
-			std::sort(rectPoints + 2, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-				return a.y < b.y;
-				});
+            if (isPair(pair))
+            {                                   // 判断是否为光源
+                auto rect = pair.boundingRect(); // 获取光源的边界矩形
+                if (0 <= rect.x && 0 <= rect.width && rect.x + rect.width <= binary_img.cols && 0 <= rect.y &&
+                    0 <= rect.height && rect.y + rect.height <= binary_img.rows)
+                {
+                    auto roi = binary_img(rect); // 获取矩形区域的图像
+                    pair.type = roi.at<uchar>(roi.rows / 2, 0) > roi.at<uchar>(roi.rows / 2, roi.cols)  ? LEFT : RIGHT;
+                    Pairs.emplace_back(pair); // 将光源添加到集合中
+                }
+            }
+        }
 
-			insidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
-			insidePoints.push_back(points);
-		}
-
-		// 根据矩形的左上角点从左到右排序
-		std::sort(insidePoints.begin(), insidePoints.end(), [](const insidemarkpoint& a, const insidemarkpoint& b) {
-			return a.l1.x < b.l1.x;
-			});
-		return insidePoints;
-	}
-	auto ImgProcessor::outsideprocess(const cv::Mat& img) -> std::vector<outsidemarkpoint> {
-		std::vector<std::vector<cv::Point>> contours;
-		std::vector<cv::Vec4i> hierarchy;
-		cv::Mat iimage = img.clone(); // Clone to avoid modifying the original image
-
-		// 查找轮廓
-		cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
-
-		std::vector<outsidemarkpoint> outsidePoints;
-
-		for (int idx = 0; idx < hierarchy.size(); ++idx) {
-			// 找到既没有子轮廓也没有父轮廓的轮廓
-			if (hierarchy[idx][2] == -1 && hierarchy[idx][3] == -1) {
-				cv::RotatedRect rotatedRect = cv::minAreaRect(contours[idx]);
-
-				// 基于轮廓面积过滤不符合大小要求的矩形
-				if (rotatedRect.size.area() < MIN_AREA || rotatedRect.size.area() > MAX_AREA)
-					continue;
-
-				cv::Point2f rectPoints[4];
-				rotatedRect.points(rectPoints); // 获取旋转矩形的四个角点
-
-				// 排序和调整rectPoints以匹配outsidemarkpoint结构
-				std::sort(rectPoints, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-					return a.x < b.x;
-					});
-
-				// 对左侧两点和右侧两点分别按y值排序
-				std::sort(rectPoints, rectPoints + 2, [](const cv::Point2f& a, const cv::Point2f& b) {
-					return a.y < b.y;
-					});
-				std::sort(rectPoints + 2, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
-					return a.y < b.y;
-					});
-
-				// 将排序后的点添加到结果向量中
-				outsidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
-				outsidePoints.push_back(points);
-			}
-		}
-
-		// 根据矩形的左上角点从左到右排序
-		std::sort(outsidePoints.begin(), outsidePoints.end(), [](const outsidemarkpoint& a, const outsidemarkpoint& b) {
-			return a.l1.x < b.l1.x;
-			});
-
-		return outsidePoints;
-	}
-	void ImgProcessor::drawPoints(const cv::Mat& img,
-		const std::vector<insidemarkpoint>& insidePoints,
-		const std::vector<outsidemarkpoint>& outsidePoints,
-		const std::string& winname) {
-		cv::Mat frame= img.clone();
-		// 为外部点绘制
-		for (const auto& point : outsidePoints) {
-			// 使用红色标记外部点
-			drawPoint(frame, point, cv::Scalar(0, 0, 255));
-		}
-		// 为内部点绘制
-		for (const auto& point : insidePoints) {
-			// 使用绿色标记内部点
-			drawPoint(frame, point, cv::Scalar(0, 255, 0));
-		}
+        return Pairs; // 返回光源集合
+    }
+    // 检查给定的光源对象是否符合设定的光源特征
+    bool Detector::isPair(const Pair &pair)
+    {
+        // 计算光源的长宽比（短边/长边）
+        float ratio = pair.width / pair.length;
+        // 检查长宽比是否在预设的范围内
+        bool ratio_ok = l.min_ratio < ratio && ratio < l.max_ratio;
 
 
+        // 判断该光源是否有效，需要同时满足比例和角度条件
+        bool is_light = ratio_ok ;
 
-		// 显示带有点和坐标的图像
-		cv::namedWindow(winname, cv::WINDOW_FREERATIO);
-		cv::resizeWindow(winname, cv::Size(720, 540));
-		cv::imshow(winname, frame);
-		cv::waitKey(1);
-	}
+        return is_light; // 返回是否为有效光源的判断结果
+    }
+    // 匹配光源对，尝试找出可能的装甲板
+    std::vector<InsideBox> Detector::matchLights(const std::vector<Pair> &lights)
+    {
+        std::vector<InsideBox> insideBoxes;       // 定义装甲板列表
+
+        // 遍历所有可能的光源对
+        for (auto light_1 = lights.begin(); light_1 != lights.end(); light_1++)
+        {
+            for (auto light_2 = light_1 + 1; light_2 != lights.end(); light_2++)
+            {
+                // 如果两光源之间存在其他光源，则跳过
+                if (containLight(*light_1, *light_2, lights))
+                {
+                    continue;
+                }
+
+                // 判断这两个光源是否能构成一个有效的装甲板
+                auto type = isInsideBox(*light_1, *light_2);
+                // 如果装甲板有效，则加入装甲板列表
+                if (type)
+                {
+                    auto insideBox = InsideBox(*light_1, *light_2);
+                    insideBoxes.emplace_back(insideBox); // 将装甲板加入列表
+                }
+            }
+        }
+
+        return insideBoxes; // 返回识别到的装甲板列表
+    }
+    bool Detector::containLight(
+            const Pair &light_1, const Pair &light_2, const std::vector<Pair> &lights) {
+        // 获取两个光源的顶部和底部坐标点
+        auto points = std::vector<cv::Point2f>{light_1.top, light_1.bottom, light_2.top, light_2.bottom};
+        // 计算这些点形成的边界矩形
+        auto bounding_rect = cv::boundingRect(points);
+
+        // 遍历所有光源，检查它们是否位于上述边界矩形内
+        for (const auto &test_light: lights) {
+            // 跳过参与形成边界矩形的两个光源
+            if (test_light.center == light_1.center || test_light.center == light_2.center)
+                continue;
+
+            // 如果任何光源的顶部、底部或中心位于边界矩形内，则返回true
+            if (
+                    bounding_rect.contains(test_light.top) || bounding_rect.contains(test_light.bottom) ||
+                    bounding_rect.contains(test_light.center)) {
+                return true;
+            }
+        }
+        return false; // 如果没有其他光源在边界矩形内，则返回false
+    }
+    // 判断两个光源是否构成装甲板，并返回装甲板类型
+    bool Detector::isInsideBox(const Pair &light_1, const Pair &light_2)
+    {
+        // 计算两个光源长度的比例（短边/长边）
+        float light_length_ratio = light_1.length < light_2.length ? light_1.length / light_2.length
+                                                                   : light_2.length / light_1.length;
+        // 检查光源长度比例是否符合预设条件
+        bool light_ratio_ok = light_length_ratio > a.min_pair_ratio;
+
+        // 计算两个光源中心点之间的距离（单位：光源长度）
+        float avg_light_length = (light_1.length + light_2.length) / 2;
+        float center_distance = cv::norm(light_1.center - light_2.center) / avg_light_length;
+        // 检查中心距是否符合装甲板的大小条件
+        bool center_distance_ok = (a.min_center_distance <= center_distance &&
+                                   center_distance < a.max_center_distance);
 
 
-	template <typename T>
-	void ImgProcessor::drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color) {
-		// 绘制每个点
-		cv::circle(img, point.l1, 5, color, -1); // 左上角点
-		cv::circle(img, point.l2, 5, color, -1); // 左下角点
-		cv::circle(img, point.r1, 5, color, -1); // 右上角点
-		cv::circle(img, point.r2, 5, color, -1); // 右下角点
+        // 综合以上条件判断是否构成装甲板
+        bool is_armor = light_ratio_ok && center_distance_ok;
 
-		// 按顺序连起来
-		cv::line(img, point.l1, point.r1, color, 2);
-		cv::line(img, point.r1, point.r2, color, 2);
-		cv::line(img, point.r2, point.l2, color, 2);
-		cv::line(img, point.l2, point.l1, color, 2);
-
-		// 标出每个点的坐标
-		std::ostringstream l1Text, l2Text, r1Text, r2Text;
-		l1Text << "(" << point.l1.x << "," << point.l1.y << ")";
-		l2Text << "(" << point.l2.x << "," << point.l2.y << ")";
-		r1Text << "(" << point.r1.x << "," << point.r1.y << ")";
-		r2Text << "(" << point.r2.x << "," << point.r2.y << ")";
-
-		cv::putText(img, l1Text.str(), point.l1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-		cv::putText(img, l2Text.str(), point.l2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-		cv::putText(img, r1Text.str(), point.r1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-		cv::putText(img, r2Text.str(), point.r2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-
-		// 计算中心点坐标
-		cv::Point2f center = (point.l1 + point.r2) * 0.5f;
-		std::ostringstream centerText;
-		centerText << "Center: (" << center.x << "," << center.y << ")";
-
-
-		// 计算并显示矩形的大小（宽度和高度）
-		float width = cv::norm(point.l1 - point.r1);
-		float height = cv::norm(point.l1 - point.l2);
-		std::ostringstream sizeText;
-		sizeText << "Size: " << width << "x" << height << "=" << width * height;
-
-		cv::circle(img, center, 5, cv::Scalar(0, 255, 255), -1); // 右下角点
-		cv::Point2f sizePos = center + cv::Point2f(20, 20); // 将大小信息位置稍微上移，以免与中心点坐标重叠
-
-		cv::putText(img, centerText.str(), sizePos, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // 使用洋红色标出中心点坐标
-		cv::putText(img, sizeText.str(), sizePos + cv::Point2f(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // 使用洋红色标出矩形大小
-   
-	}
+        return is_armor; // 返回装甲板类型
+    }
 }

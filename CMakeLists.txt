@@ -5,12 +5,10 @@ set(CMAKE_CXX_STANDARD 14)
 set(OPENCV_PATH "${CMAKE_SOURCE_DIR}/Libs/OpenCV")
 
 
-add_executable(Group2 main.cpp main.h HikCam/hik_camera.cpp HikCam/hik_camera.h)
+add_executable(Group2 main.cpp main.h HikCam/hik_camera.cpp HikCam/hik_camera.h
+                Detector/Detector.cpp Detector/Detector.h)
 
 include_directories("${OPENCV_PATH}/include")
 target_link_libraries(Group2 "${OPENCV_PATH}/opencv_world455.lib")
 target_link_libraries(Group2 "${CMAKE_SOURCE_DIR}/Libs/MvCameraControl.lib")
-
-
-
 

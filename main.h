@@ -10,7 +10,12 @@
 #include"HikCam/hik_camera.h"
 #include "Detector/Detector.h"
 
-
+ImgProcess::Detector::LightParams lightParams={
+        0,99999
+};
+ImgProcess::Detector::ArmorParams armorParams={
+        0,0,99999
+};
 
 
 

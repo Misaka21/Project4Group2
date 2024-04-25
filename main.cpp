@@ -3,6 +3,7 @@
 
 #include"main.h"
 
+
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
 {
 	//为了等MV_CC_GetImageBuffer调用后再发送软触发命令
@@ -15,16 +16,22 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 	}
 	srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
 	/*******从这里开始写代码********/
+    ImgProcess::Detector detector_(100,lightParams,armorParams);
+    auto Pairs=detector_.detect(srcImage);
+    std::cout<<Pairs[0]<<std::endl;
 
-
-
+    // 显示结果图像
+    cv::imshow("Min Area Rectangles", srcImage);
 
 
 
 
 	/*******从这里开始建议不要动********/
-	cv::imshow("a", srcImage);
-	char key = cv::waitKey(1);
+    cv::namedWindow("a", cv::WINDOW_NORMAL);
+    cv::resizeWindow("a", 720, 540);
+    cv::imshow("a", srcImage);
+
+    char key = cv::waitKey(1);
 }
 int main()
 {
@@ -38,11 +45,10 @@ int main()
 		.setGain(10)//设置增益
 		.setTrigger(SOFTWARE);//设置触发方式
 	HikCam cam(camInfo);
-	
-	//while(1)
+
+	while(1)
 	cam.Grab();
-	cam.Grab();
-	cam.Grab();
+
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
