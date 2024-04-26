@@ -58,7 +58,8 @@ namespace ImgProcess {
         cv::waitKey(1);
         return _insideboxes;
     }
-    // 图像预处理函数，接收RGB图像，返回二值图
+
+
     cv::Mat Detector::preprocessImage(const cv::Mat &gray_img)
     {
         cv::Mat binary_img;
@@ -68,7 +69,7 @@ namespace ImgProcess {
         cv::dilate(binary_img, binary_img, element);
         cv::erode(binary_img, binary_img, element);
 
-        return binary_img; // 返回二值图
+        return binary_img;
     }
 
     std::vector<Pair> Detector::findPairs(const cv::Mat &binary_img)
@@ -112,7 +113,7 @@ namespace ImgProcess {
                     pair.type = left_mean[0] > right_mean[0] ? LEFT : RIGHT;
                     std::cout<<"fuck"<<pair.type<<std::endl;
                     cv::waitKey(1);
-                    Pairs.emplace_back(pair); // 将光源添加到集合中
+                    Pairs.emplace_back(pair);
 
                 }
             }
