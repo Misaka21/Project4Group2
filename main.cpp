@@ -16,8 +16,12 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 	}
 	srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
 	/*******从这里开始写代码********/
-    ImgProcess::Detector detector_(180,lightParams,armorParams);
+    ImgProcess::InsideDetector detector_(180,lightParams,armorParams);
     auto Pairs=detector_.detect(srcImage);
+    ImgProcess::OutsideDetector outsidedbox;
+    auto Obox_list=outsidedbox.outsideprocess(
+            ImgProcess::OutsideDetector::thresholdBookmark(srcImage));
+
     //std::cout<<Pairs[0]<<std::endl;
 
     // 显示结果图像

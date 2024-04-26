@@ -4,7 +4,7 @@
 namespace ImgProcess {
 
 
-    Detector::Detector(
+    InsideDetector::InsideDetector(
             const int &bin_thres,
             const PairParams &p,
             const InsideBoxParams &a)
@@ -12,7 +12,7 @@ namespace ImgProcess {
     {
     }
 
-    std::vector<InsideBox> Detector::detect(const cv::Mat &input)
+    std::vector<InsideBox> InsideDetector::detect(const cv::Mat &input)
     {
         binary_img = preprocessImage(input);
         cv::imshow("binary_img",binary_img);
@@ -37,6 +37,8 @@ namespace ImgProcess {
         }
 
         _insideboxes = matchPairs(_pairs);
+
+
         for (const auto& InsideBox : _insideboxes) {
 
             cv::Point2f vertices[4];
@@ -60,7 +62,7 @@ namespace ImgProcess {
     }
 
 
-    cv::Mat Detector::preprocessImage(const cv::Mat &gray_img)
+    cv::Mat InsideDetector::preprocessImage(const cv::Mat &gray_img)
     {
         cv::Mat binary_img;
         cv::threshold(gray_img, binary_img, binary_thres, 255, cv::THRESH_BINARY);
@@ -72,7 +74,7 @@ namespace ImgProcess {
         return binary_img;
     }
 
-    std::vector<Pair> Detector::findPairs(const cv::Mat &binary_img)
+    std::vector<Pair> InsideDetector::findPairs(const cv::Mat &binary_img)
     {
         using std::vector;
         vector<vector<cv::Point>> contours;
@@ -123,7 +125,7 @@ namespace ImgProcess {
     }
 
 
-    bool Detector::isPair(const Pair &possible_pair)
+    bool InsideDetector::isPair(const Pair &possible_pair)
     {
         float ratio = possible_pair.width / possible_pair.length;
         float area = possible_pair.length * possible_pair.width;
@@ -138,7 +140,7 @@ namespace ImgProcess {
     }
 
 
-    std::vector<InsideBox> Detector::matchPairs(std::vector<Pair> &pairs)
+    std::vector<InsideBox> InsideDetector::matchPairs(std::vector<Pair> &pairs)
     {
         std::vector<InsideBox> insideBoxes;
 
@@ -171,10 +173,15 @@ namespace ImgProcess {
                 }
             }
         }
+        auto compare2 = [](const InsideBox& a, const InsideBox& b) {
+            return a.center.x < b.center.x;
+        };
+
+        std::sort(insideBoxes.begin(), insideBoxes.end(), compare2);
 
         return insideBoxes;
     }
-    bool Detector::containPair(
+    bool InsideDetector::containPair(
             const Pair &pair_1, const Pair &pair_2, const std::vector<Pair> &pairs) {
 
         auto points = std::vector<cv::Point2f>{pair_1.top, pair_1.bottom, pair_2.top, pair_2.bottom};
@@ -196,7 +203,7 @@ namespace ImgProcess {
     }
 
 
-    bool Detector::isInsideBox(const Pair &pair_1, const Pair &pair_2)
+    bool InsideDetector::isInsideBox(const Pair &pair_1, const Pair &pair_2)
     {
         float pair_length_ratio = pair_1.length < pair_2.length ? pair_1.length / pair_2.length
                                                                 : pair_2.length / pair_1.length;
@@ -217,4 +224,127 @@ namespace ImgProcess {
         //std::cout<<is_insidebox<<std::endl;
         return is_insidebox;
     }
+    auto OutsideDetector::thresholdBookmark(const cv::Mat& img) ->  cv::Mat {
+        cv::Mat result;
+        //cv::cvtColor(imgContrast, imgContrast, cv::COLOR_BGR2GRAY);
+        cv::threshold(img, result, 200, 255, cv::THRESH_BINARY|cv::THRESH_OTSU);
+
+        return result;
+    }
+
+    auto OutsideDetector::outsideprocess(const cv::Mat& img) -> std::vector<outsidemarkpoint> {
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+        cv::Mat iimage = img.clone(); // Clone to avoid modifying the original image
+
+        // 查找轮廓
+        cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+
+        std::vector<outsidemarkpoint> outsidePoints;
+
+        for (int idx = 0; idx < hierarchy.size(); ++idx) {
+            // 找到既没有子轮廓也没有父轮廓的轮廓
+            if (hierarchy[idx][2] == -1 && hierarchy[idx][3] == -1) {
+                cv::RotatedRect rotatedRect = cv::minAreaRect(contours[idx]);
+
+                // 基于轮廓面积过滤不符合大小要求的矩形
+                if (rotatedRect.size.area() < this->_MIN_Area || rotatedRect.size.area() > this->_MAX_Area)
+                    continue;
+
+                cv::Point2f rectPoints[4];
+                rotatedRect.points(rectPoints); // 获取旋转矩形的四个角点
+
+                // 排序和调整rectPoints以匹配outsidemarkpoint结构
+                std::sort(rectPoints, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
+                    return a.x < b.x;
+                });
+
+                // 对左侧两点和右侧两点分别按y值排序
+                std::sort(rectPoints, rectPoints + 2, [](const cv::Point2f& a, const cv::Point2f& b) {
+                    return a.y < b.y;
+                });
+                std::sort(rectPoints + 2, rectPoints + 4, [](const cv::Point2f& a, const cv::Point2f& b) {
+                    return a.y < b.y;
+                });
+
+                // 将排序后的点添加到结果向量中
+                outsidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
+                outsidePoints.push_back(points);
+            }
+        }
+
+        // 根据矩形的左上角点从左到右排序
+        std::sort(outsidePoints.begin(), outsidePoints.end(), [](const outsidemarkpoint& a, const outsidemarkpoint& b) {
+            return a.l1.x < b.l1.x;
+        });
+
+        return outsidePoints;
+    }
+    void OutsideDetector::drawPoints(const cv::Mat& img,
+                                     const std::vector<outsidemarkpoint>& outsidePoints,
+                                     const std::string& winname) {
+        cv::Mat frame= img.clone();
+        // 为外部点绘制
+        for (const auto& point : outsidePoints) {
+            // 使用红色标记外部点
+            drawPoint(frame, point, cv::Scalar(0, 0, 255));
+        }
+
+        // 显示带有点和坐标的图像
+        cv::namedWindow(winname, cv::WINDOW_FREERATIO);
+        cv::resizeWindow(winname, cv::Size(720, 540));
+        cv::imshow(winname, frame);
+        cv::waitKey(1);
+    }
+
+
+    template <typename T>
+    void OutsideDetector::drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color) {
+        // 绘制每个点
+        cv::circle(img, point.l1, 5, color, -1); // 左上角点
+        cv::circle(img, point.l2, 5, color, -1); // 左下角点
+        cv::circle(img, point.r1, 5, color, -1); // 右上角点
+        cv::circle(img, point.r2, 5, color, -1); // 右下角点
+
+        // 按顺序连起来
+        cv::line(img, point.l1, point.r1, color, 2);
+        cv::line(img, point.r1, point.r2, color, 2);
+        cv::line(img, point.r2, point.l2, color, 2);
+        cv::line(img, point.l2, point.l1, color, 2);
+
+        // 标出每个点的坐标
+        std::ostringstream l1Text, l2Text, r1Text, r2Text;
+        l1Text << "(" << point.l1.x << "," << point.l1.y << ")";
+        l2Text << "(" << point.l2.x << "," << point.l2.y << ")";
+        r1Text << "(" << point.r1.x << "," << point.r1.y << ")";
+        r2Text << "(" << point.r2.x << "," << point.r2.y << ")";
+
+        cv::putText(img, l1Text.str(), point.l1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+        cv::putText(img, l2Text.str(), point.l2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+        cv::putText(img, r1Text.str(), point.r1, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+        cv::putText(img, r2Text.str(), point.r2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+
+        // 计算中心点坐标
+        cv::Point2f center = (point.l1 + point.r2) * 0.5f;
+        std::ostringstream centerText;
+        centerText << "Center: (" << center.x << "," << center.y << ")";
+
+
+        // 计算并显示矩形的大小（宽度和高度）
+        float width = cv::norm(point.l1 - point.r1);
+        float height = cv::norm(point.l1 - point.l2);
+        std::ostringstream sizeText;
+        sizeText << "Size: " << width << "x" << height << "=" << width * height;
+
+        cv::circle(img, center, 5, cv::Scalar(0, 255, 255), -1); // 右下角点
+        cv::Point2f sizePos = center + cv::Point2f(20, 20); // 将大小信息位置稍微上移，以免与中心点坐标重叠
+
+        cv::putText(img, centerText.str(), sizePos, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // 使用洋红色标出中心点坐标
+        cv::putText(img, sizeText.str(), sizePos + cv::Point2f(0, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 255), 2); // 使用洋红色标出矩形大小
+
+    }
+
+
+
+
 }

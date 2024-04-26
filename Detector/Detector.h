@@ -17,7 +17,7 @@
 namespace ImgProcess {
 
 
-    class Detector
+    class InsideDetector
     {
     public:
         struct PairParams
@@ -35,7 +35,7 @@ namespace ImgProcess {
             double max_center_distance;
         };
 
-        Detector(const int &bin_thres, const PairParams &p, const InsideBoxParams &a);
+        InsideDetector(const int &bin_thres, const PairParams &p, const InsideBoxParams &a);
 
         std::vector<InsideBox> detect(const cv::Mat &input);
 
@@ -66,6 +66,21 @@ namespace ImgProcess {
         // 存储匹配成功的装甲板
         std::vector<InsideBox> _insideboxes;
     };
+    class OutsideDetector
+    {
+    public:
+        static auto thresholdBookmark(const cv::Mat& img) ->  cv::Mat;
+        auto outsideprocess(const cv::Mat& img) -> std::vector<outsidemarkpoint>;
 
+        void drawPoints(const cv::Mat& img,
+                        const std::vector<outsidemarkpoint>& outsidePoints,
+                        const std::string& winname);
+    private:
+        int _MIN_Area=1000;
+        int _MAX_Area=10000;
+
+        template <typename T>
+        void drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color);
+    };
 }
 #endif //RM2024_DETECTOR_H

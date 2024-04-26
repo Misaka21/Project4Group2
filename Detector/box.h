@@ -63,7 +63,10 @@ namespace ImgProcess {
         Pair left_pair, right_pair;
         cv::Point2f center;
     };
-
+    struct outsidemarkpoint
+    {
+        cv::Point2f l1, l2, r1, r2;
+    };
 
 
 }
