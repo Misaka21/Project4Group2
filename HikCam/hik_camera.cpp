@@ -259,6 +259,14 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 		//printf("Set OffsetY fail! nRet [0x%x]\n", _nRet);
 		//break;
 	}
+    //设置心跳时间
+    _nRet = MV_CC_SetIntValue(_handle, "GevHeartbeatTimeout", Info._nHeartTimeOut);
+    if (MV_OK != _nRet)
+    {
+        printf("%s[ERROR]: Set HeartbeatTimeout fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        //printf("Set OffsetY fail! nRet [0x%x]\n", _nRet);
+        //break;
+    }
     //输出当前设置
     printf("%s", GREEN_START);
     printf("Current Setting:\n");
@@ -266,6 +274,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
     printf("Gain: %f\n", Info._nGain);
     printf("Width: %d\n", Info._nWidth);
     printf("Height: %d\n", Info._nHeight);
+    printf("HeartbeatTimeout: %d\n", Info._nHeartTimeOut);
     printf("OffsetX: %d\n", Info._nOffsetX);
     printf("OffsetY: %d\n", Info._nOffsetY);
     auto getTriggerSource = [](TRIGGERSOURCE trigger) -> const char* {
@@ -273,7 +282,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
         case SOFTWARE: return "SOFTWARE";
         case LINE0:    return "LINE0";
         case LINE2:    return "LINE2";
-        default: return"ERROR";
+        default:       return"ERROR";
         }
     };
     printf("TriggerSource: %s\n", getTriggerSource(Info._trigger));

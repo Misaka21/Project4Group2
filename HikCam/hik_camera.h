@@ -30,16 +30,18 @@ public:
     CAM_INFO& setExpTime(float expTime) { _nExpTime = expTime; return *this; }
     CAM_INFO& setGain(float gain) { _nGain = gain; return *this; }
     CAM_INFO& setTrigger(TRIGGERSOURCE trg) { _trigger = trg; return *this; }
+    CAM_INFO& setHeartTimeOut(int Time){_nHeartTimeOut=Time; return *this; }
     friend class HikCam;  
 
 private:
     int _nCamID = 0;
-    int _nWidth = 1440;
-    int _nHeight = 1080;
-    int _nOffsetX = 0;
-    int _nOffsetY = 0;
-    float _nExpTime = 1000;
-    float _nGain = 8;
+    int _nWidth = 1800;
+    int _nHeight = 1800;
+    int _nOffsetX = 500;
+    int _nOffsetY = 148;
+    int _nHeartTimeOut = 2000;
+    float _nExpTime = 5000;
+    float _nGain = 15;
     TRIGGERSOURCE _trigger = SOFTWARE;
 
 };

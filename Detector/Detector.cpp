@@ -1,5 +1,5 @@
-﻿#include "Detector.h"
-#include "opencv2/imgproc.hpp"
+﻿#include <iostream>
+#include "Detector.h"
 
 namespace ImgProcess {
 
@@ -15,9 +15,47 @@ namespace ImgProcess {
     std::vector<InsideBox> Detector::detect(const cv::Mat &input)
     {
         binary_img = preprocessImage(input);
+        cv::imshow("binary_img",binary_img);
         lights_ = findPairs(binary_img); // 在二值图中找到光源
-        armors_ = matchLights(lights_);          // 匹配光源，识别出装甲板
+        cv::Mat Draw=input.clone();
+        for (const auto& light : lights_) {
+            // 获取旋转矩形的四个顶点
+            cv::Point2f vertices[4];
+            light.points(vertices);
 
+            // 绘制旋转矩形的边界
+            for (int i = 0; i < 4; i++)
+                cv::line(Draw, vertices[i], vertices[(i+1)%4], cv::Scalar(255, 255, 255));
+
+            // 计算并标出长宽比
+            std::string ratio = std::to_string(light.width * light.length);
+            cv::putText(Draw, ratio, light.center, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0));
+
+            // 标出旋转矩形的顶点
+            for (int i = 0; i < 4; i++)
+                cv::circle(Draw, vertices[i], 5, cv::Scalar(0, 0, 255), -1);
+        }
+
+        armors_ = matchLights(lights_);          // 匹配光源，识别出装甲板
+        for (const auto& armor : armors_) {
+            // 获取装甲板的左右光源的四个顶点
+            cv::Point2f vertices[4];
+            armor.left_pair.points(vertices);
+            armor.right_pair.points(vertices+2);
+
+            // 计算装甲板的边界矩形
+            cv::Rect armor_rect(cv::boundingRect(cv::Mat(4, 1, CV_32FC2, vertices)));
+
+            // 绘制装甲板的边界
+            cv::rectangle(Draw, armor_rect, cv::Scalar(0, 255, 0), 2);
+
+            // 标出装甲板的中心点
+            cv::circle(Draw, armor.center, 10, cv::Scalar(0, 0, 255), -1);
+        }
+        //cv::namedWindow("binar", cv::WINDOW_NORMAL);
+        //cv::resizeWindow("binar", 1000, 1000);
+        cv::imshow("binar",Draw);
+        cv::waitKey(1);
         return armors_; // 返回检测到的装甲板集合
     }
     // 图像预处理函数，接收RGB图像，返回二值图
@@ -25,7 +63,14 @@ namespace ImgProcess {
     {
         cv::Mat binary_img;                                                        // 定义二值图
         cv::threshold(gray_img, binary_img, binary_thres, 255, cv::THRESH_BINARY); // 应用二值化
+// 创建一个5x5的结构元素
+        cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
 
+// 应用膨胀操作
+        cv::dilate(binary_img, binary_img, element);
+
+// 应用腐蚀操作
+        cv::erode(binary_img, binary_img, element);
         return binary_img; // 返回二值图
     }
 
@@ -53,8 +98,27 @@ namespace ImgProcess {
                     0 <= rect.height && rect.y + rect.height <= binary_img.rows)
                 {
                     auto roi = binary_img(rect); // 获取矩形区域的图像
-                    pair.type = roi.at<uchar>(roi.rows / 2, 0) > roi.at<uchar>(roi.rows / 2, roi.cols)  ? LEFT : RIGHT;
+                    cv::imshow("roi",roi);
+
+                    // 获取左边10x10的子区域
+                    cv::Rect left_roi(0, roi.rows / 2 - 10, 20, 20);
+                    cv::Mat left_sub = roi(left_roi);
+                    cv::imshow("roil",left_sub);
+
+                    // 获取右边10x10的子区域
+                    cv::Rect right_roi(roi.cols - 20, roi.rows / 2 - 10, 20, 20);
+                    cv::Mat right_sub = roi(right_roi);
+                    cv::imshow("roir",right_sub);
+                    // 计算子区域的平均值
+                    cv::Scalar left_mean = cv::mean(left_sub);
+                    cv::Scalar right_mean = cv::mean(right_sub);
+
+// 比较平均值
+                    pair.type = left_mean[0] > right_mean[0] ? LEFT : RIGHT;
+                    std::cout<<"fuck"<<pair.type<<std::endl;
+                    cv::waitKey(1);
                     Pairs.emplace_back(pair); // 将光源添加到集合中
+
                 }
             }
         }
@@ -66,23 +130,32 @@ namespace ImgProcess {
     {
         // 计算光源的长宽比（短边/长边）
         float ratio = pair.width / pair.length;
+        float area =pair.length*pair.width;
         // 检查长宽比是否在预设的范围内
         bool ratio_ok = l.min_ratio < ratio && ratio < l.max_ratio;
 
+        bool area_ok=l.min_area < area && area < l.max_area;
 
         // 判断该光源是否有效，需要同时满足比例和角度条件
-        bool is_light = ratio_ok ;
+        bool is_light = ratio_ok &&area_ok;
 
         return is_light; // 返回是否为有效光源的判断结果
     }
     // 匹配光源对，尝试找出可能的装甲板
-    std::vector<InsideBox> Detector::matchLights(const std::vector<Pair> &lights)
+    std::vector<InsideBox> Detector::matchLights(std::vector<Pair> &lights)
     {
         std::vector<InsideBox> insideBoxes;       // 定义装甲板列表
 
+        auto compare = [](const Pair &a, const Pair &b) {
+            return a.top.x < b.top.x;
+        };
+
+// 对insideBoxes进行排序
+        std::sort(lights.begin(), lights.end(), compare);
         // 遍历所有可能的光源对
         for (auto light_1 = lights.begin(); light_1 != lights.end(); light_1++)
         {
+            if(light_1->type==RIGHT) continue;
             for (auto light_2 = light_1 + 1; light_2 != lights.end(); light_2++)
             {
                 // 如果两光源之间存在其他光源，则跳过
@@ -94,9 +167,11 @@ namespace ImgProcess {
                 // 判断这两个光源是否能构成一个有效的装甲板
                 auto type = isInsideBox(*light_1, *light_2);
                 // 如果装甲板有效，则加入装甲板列表
+
                 if (type)
                 {
                     auto insideBox = InsideBox(*light_1, *light_2);
+                    //std::cout<<"sorted"<<insideBox.left_pair.type<<insideBox.right_pair.type<<std::endl;
                     insideBoxes.emplace_back(insideBox); // 将装甲板加入列表
                 }
             }
@@ -132,20 +207,22 @@ namespace ImgProcess {
         // 计算两个光源长度的比例（短边/长边）
         float light_length_ratio = light_1.length < light_2.length ? light_1.length / light_2.length
                                                                    : light_2.length / light_1.length;
+        std::cout<<"light_length_ratio"<<light_length_ratio<<std::endl;
         // 检查光源长度比例是否符合预设条件
         bool light_ratio_ok = light_length_ratio > a.min_pair_ratio;
 
         // 计算两个光源中心点之间的距离（单位：光源长度）
         float avg_light_length = (light_1.length + light_2.length) / 2;
-        float center_distance = cv::norm(light_1.center - light_2.center) / avg_light_length;
+        float center_distance = cv::norm(light_1.center - light_2.center);
         // 检查中心距是否符合装甲板的大小条件
         bool center_distance_ok = (a.min_center_distance <= center_distance &&
                                    center_distance < a.max_center_distance);
-
-
+        bool center_ok=light_1.center.x< light_2.center.x;
+        bool type_ok=light_1.type==LEFT&&light_2.type==RIGHT;
         // 综合以上条件判断是否构成装甲板
-        bool is_armor = light_ratio_ok && center_distance_ok;
-
+        bool is_armor = light_ratio_ok && center_distance_ok&&type_ok&&center_ok;
+        std::cout<<light_1.type<<light_2.type<<std::endl;
+        //std::cout<<is_armor<<std::endl;
         return is_armor; // 返回装甲板类型
     }
 }

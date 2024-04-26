@@ -16,19 +16,19 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 	}
 	srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
 	/*******从这里开始写代码********/
-    ImgProcess::Detector detector_(100,lightParams,armorParams);
+    ImgProcess::Detector detector_(180,lightParams,armorParams);
     auto Pairs=detector_.detect(srcImage);
-    std::cout<<Pairs[0]<<std::endl;
+    //std::cout<<Pairs[0]<<std::endl;
 
     // 显示结果图像
-    cv::imshow("Min Area Rectangles", srcImage);
+    //cv::imshow("Min Area Rectangles", srcImage);
 
 
 
 
 	/*******从这里开始建议不要动********/
     cv::namedWindow("a", cv::WINDOW_NORMAL);
-    cv::resizeWindow("a", 720, 540);
+    cv::resizeWindow("a", 1000, 1000);
     cv::imshow("a", srcImage);
 
     char key = cv::waitKey(1);
@@ -36,14 +36,14 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 int main()
 {
 	CAM_INFO camInfo;
-	camInfo.setCamID(0)//设置相机ID
-		.setWidth(1920)//设置图像宽度
-		.setHeight(1080)//设置图像高度
-		.setOffsetX(100)//设置图像X偏移
-		.setOffsetY(100)//设置图像Y偏移
-		.setExpTime(5000)//设置曝光时间
-		.setGain(10)//设置增益
-		.setTrigger(SOFTWARE);//设置触发方式
+	camInfo.setCamID(0);//设置相机ID
+		//.setWidth(1920)//设置图像宽度
+		//.setHeight(1080)//设置图像高度
+		//.setOffsetX(100)//设置图像X偏移
+		//.setOffsetY(100)//设置图像Y偏移
+		//.setExpTime(5000)//设置曝光时间
+		//.setGain(10)//设置增益
+		//.setTrigger(SOFTWARE);//设置触发方式
 	HikCam cam(camInfo);
 
 	while(1)
