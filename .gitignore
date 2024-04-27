@@ -18,7 +18,6 @@ mono_crash.*
 
 # Build results
 [Dd]ebug/
-libs/OpenCV
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/

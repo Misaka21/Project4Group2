@@ -37,8 +37,10 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 
     char key = cv::waitKey(1);
 }
+
 int main()
 {
+
 	CAM_INFO camInfo;
 	camInfo.setCamID(0);//设置相机ID
 		//.setWidth(1920)//设置图像宽度
