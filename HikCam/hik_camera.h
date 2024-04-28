@@ -19,6 +19,12 @@ enum TRIGGERSOURCE
     LINE0,
     LINE2,
 } ;
+enum GAMMAMODE
+{
+    OFF,
+    USER,
+    sRGB,
+};
 
 class CAM_INFO {
 public:
@@ -29,21 +35,22 @@ public:
     CAM_INFO& setOffsetY(int offsetY) { _nOffsetY = offsetY; return *this; }
     CAM_INFO& setExpTime(float expTime) { _nExpTime = expTime; return *this; }
     CAM_INFO& setGain(float gain) { _nGain = gain; return *this; }
-    CAM_INFO& setTrigger(TRIGGERSOURCE trg) { _trigger = trg; return *this; }
+    CAM_INFO& setTrigger(TRIGGERSOURCE trg) { _nTrigger = trg; return *this; }
     CAM_INFO& setHeartTimeOut(int Time){_nHeartTimeOut=Time; return *this; }
+    CAM_INFO& setGamma(GAMMAMODE Gamma){_nGamma=Gamma; return *this; }
     friend class HikCam;  
 
 private:
     int _nCamID = 0;
     int _nWidth = 1800;
     int _nHeight = 1800;
-    int _nOffsetX = 500;
-    int _nOffsetY = 148;
+    int _nOffsetX = 0;
+    int _nOffsetY = 0;
     int _nHeartTimeOut = 2000;
     float _nExpTime = 5000;
-    float _nGain = 15;
-    TRIGGERSOURCE _trigger = SOFTWARE;
-
+    float _nGain = 5;
+    TRIGGERSOURCE _nTrigger = SOFTWARE;
+    GAMMAMODE _nGamma = sRGB;
 };
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser);
 class HikCam {

@@ -9,7 +9,7 @@
 
 #include"HikCam/hik_camera.h"
 #include "Detector/Detector.h"
-
+#define YAML_CPP_STATIC_DEFINE
 ImgProcess::InsideDetector::PairParams lightParams={
         0,0.1,15000,20000
 };

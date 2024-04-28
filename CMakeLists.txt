@@ -10,6 +10,13 @@ add_executable(Group2 main.cpp main.h HikCam/hik_camera.cpp HikCam/hik_camera.h
         Detector/box.h)
 
 include_directories("${CMAKE_SOURCE_DIR}/Includes")
-target_link_libraries(Group2 "${Lib_PATH}/opencv_world455.lib")
+
 target_link_libraries(Group2 "${Lib_PATH}/MvCameraControl.lib")
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    target_link_libraries(Group2 "${Lib_PATH}/opencv_world455d.lib")
+    target_link_libraries(Group2 "${Lib_PATH}/yaml-cppd.lib")
+else()
+    target_link_libraries(Group2 "${Lib_PATH}/opencv_world455.lib")
+    target_link_libraries(Group2 "${Lib_PATH}/yaml-cpp.lib")
+endif()
 

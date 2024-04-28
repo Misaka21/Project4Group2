@@ -14,6 +14,7 @@
  *                  2023.11.10  V2.1    完成BayerRG转Mat的操作
  *                  2024.01.01  V2.2    完成相机错误代码的优化
  *                  2024.04.20  V3.0    完成产线上工业相机的硬触发和相关参数的设置
+ *                  2024.04.28  V3.1    加入Gamma选择和超时时间
  *                  TODO：加入垂直翻转，水平翻转，相机参数输出，简化设置相机参数流程
 *************************************************************************/
 #include "hik_camera.h"
@@ -181,7 +182,7 @@ void HikCam::Grab() {
 }
 void HikCam::SetAttribute(CAM_INFO Info) {
     // 设置触发模式
-    if (Info._trigger == SOFTWARE)
+    if (Info._nTrigger == SOFTWARE)
     {
         _nRet = MV_CC_SetEnumValueByString(_handle, "TriggerSource", "Software");
         if (MV_OK != _nRet)
@@ -191,7 +192,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 			//break;
 		}
 	}
-	if (Info._trigger == LINE0)
+	if (Info._nTrigger == LINE0)
 	{
 		_nRet = MV_CC_SetEnumValueByString(_handle, "TriggerSource", "Line0");
         if (MV_OK != _nRet)
@@ -201,7 +202,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 			//break;
 		}
 	}
-	if (Info._trigger == LINE2)
+	if (Info._nTrigger == LINE2)
 	{
 		_nRet = MV_CC_SetEnumValueByString(_handle, "TriggerSource", "Line2");
         if (MV_OK != _nRet)
@@ -267,6 +268,15 @@ void HikCam::SetAttribute(CAM_INFO Info) {
         //printf("Set OffsetY fail! nRet [0x%x]\n", _nRet);
         //break;
     }
+    //设置Gamma使能
+    _nRet = MV_CC_SetBoolValue(_handle, "GammaEnable", Info._nGamma);
+    if(Info._nGamma)
+        _nRet = MV_CC_SetEnumValue(_handle, "GammaSelector", Info._nGamma);
+    if (MV_OK != _nRet)
+    {
+        printf("%s[ERROR]: Set GammaMode fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+    }
+
     //输出当前设置
     printf("%s", GREEN_START);
     printf("Current Setting:\n");
@@ -285,7 +295,16 @@ void HikCam::SetAttribute(CAM_INFO Info) {
         default:       return"ERROR";
         }
     };
-    printf("TriggerSource: %s\n", getTriggerSource(Info._trigger));
+    printf("TriggerSource: %s\n", getTriggerSource(Info._nTrigger));
+    auto getGammaMode = [](GAMMAMODE nGamma) -> const char* {
+        switch (nGamma) {
+            case OFF:       return "OFF";
+            case USER:      return "User";
+            case sRGB:      return "sRGB";
+            default:        return "ERROR";
+        }
+    };
+    printf("GammaMode: %s\n", getGammaMode(Info._nGamma));
     printf("%s", COLOR_END);
     
     

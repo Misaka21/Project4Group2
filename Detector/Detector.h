@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#ifndef RM2024_DETECTOR_H
-#define RM2024_DETECTOR_H
+#ifndef DETECTOR_H
+#define DETECTOR_H
 
 
 #include <opencv2/core.hpp>
