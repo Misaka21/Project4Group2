@@ -15,7 +15,8 @@ namespace ImgProcess {
     std::vector<InsideBox> InsideDetector::detect(const cv::Mat &input)
     {
         binary_img = preprocessImage(input);
-        cv::imshow("binary_img",binary_img);
+
+
         _pairs = findPairs(binary_img);
         cv::Mat Draw=input.clone();
         for (const auto& light : _pairs) {
@@ -33,7 +34,7 @@ namespace ImgProcess {
 
 
             for (int i = 0; i < 4; i++)
-                cv::circle(Draw, vertices[i], 5, cv::Scalar(0, 0, 255), -1);
+                cv::circle(Draw, vertices[i], 5, cv::Scalar(0, 0, 255), 5);
         }
 
         _insideboxes = matchPairs(_pairs);
@@ -42,22 +43,25 @@ namespace ImgProcess {
         for (const auto& InsideBox : _insideboxes) {
 
             cv::Point2f vertices[4];
-            InsideBox.left_pair.points(vertices);
-            InsideBox.right_pair.points(vertices + 2);
-
+            vertices[0]=InsideBox.left_pair.top;
+            vertices[3]=InsideBox.left_pair.bottom;
+            vertices[1]=InsideBox.right_pair.top;
+            vertices[2]=InsideBox.right_pair.bottom;
+//            InsideBox.right_pair.points(vertices + 2);
+            std::cout<<"[DEBUG]: Inside"<<vertices[0]<<vertices[3]<<vertices[1]<<vertices[2]<<std::endl;
 
             cv::Rect InsideBox_rect(cv::boundingRect(cv::Mat(4, 1, CV_32FC2, vertices)));
 
 
-            cv::rectangle(Draw, InsideBox_rect, cv::Scalar(0, 255, 0), 2);
+            cv::rectangle(Draw, InsideBox_rect, cv::Scalar(255, 255, 255), 10);
 
 
             cv::circle(Draw, InsideBox.center, 10, cv::Scalar(0, 0, 255), -1);
         }
-        //cv::namedWindow("binar", cv::WINDOW_NORMAL);
-        //cv::resizeWindow("binar", 1000, 1000);
+        cv::namedWindow("binar", cv::WINDOW_NORMAL);
+        cv::resizeWindow("binar", 1000, 1000);
         cv::imshow("binar",Draw);
-        cv::waitKey(1);
+        //cv::waitKey(1);
         return _insideboxes;
     }
 
@@ -113,7 +117,7 @@ namespace ImgProcess {
                     cv::Scalar right_mean = cv::mean(right_sub);
 
                     pair.type = left_mean[0] > right_mean[0] ? LEFT : RIGHT;
-                    std::cout<<"fuck"<<pair.type<<std::endl;
+                    //std::cout<<"fuck"<<pair.type<<std::endl;
                     cv::waitKey(1);
                     Pairs.emplace_back(pair);
 
@@ -207,7 +211,7 @@ namespace ImgProcess {
     {
         float pair_length_ratio = pair_1.length < pair_2.length ? pair_1.length / pair_2.length
                                                                 : pair_2.length / pair_1.length;
-        std::cout << "pair_length_ratio" << pair_length_ratio << std::endl;
+        //std::cout << "pair_length_ratio" << pair_length_ratio << std::endl;
 
         bool pair_ratio_ok = pair_length_ratio > a.min_pair_ratio;
 
@@ -220,7 +224,7 @@ namespace ImgProcess {
         bool type_ok= pair_1.type == LEFT && pair_2.type == RIGHT;
 
         bool is_insidebox = pair_ratio_ok && center_distance_ok && type_ok && center_ok;
-        std::cout << pair_1.type << pair_2.type << std::endl;
+        //std::cout << pair_1.type << pair_2.type << std::endl;
         //std::cout<<is_insidebox<<std::endl;
         return is_insidebox;
     }
@@ -233,10 +237,18 @@ namespace ImgProcess {
     }
 
     auto OutsideDetector::outsideprocess(const cv::Mat& img) -> std::vector<outsidemarkpoint> {
+
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
         cv::Mat iimage = img.clone(); // Clone to avoid modifying the original image
+        cv::threshold(iimage, iimage, 175, 255, cv::THRESH_BINARY);
 
+        cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
+        cv::dilate(iimage, iimage, element);
+        cv::erode(iimage, iimage, element);
+        //cv::namedWindow("binary_img", cv::WINDOW_NORMAL);
+        //cv::resizeWindow("binary_img", 1000, 1000);
+        //cv::imshow("binary_img",iimage);
         // 查找轮廓
         cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
 
@@ -269,6 +281,7 @@ namespace ImgProcess {
 
                 // 将排序后的点添加到结果向量中
                 outsidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
+                std::cout<<"[DEBUG]: Outside"<<points.l1<<points.l2<<points.r1<<points.r2<<std::endl;
                 outsidePoints.push_back(points);
             }
         }

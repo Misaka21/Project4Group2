@@ -19,8 +19,7 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
     ImgProcess::InsideDetector detector_(180,lightParams,armorParams);
     auto Pairs=detector_.detect(srcImage);
     ImgProcess::OutsideDetector outsidedbox;
-    auto Obox_list=outsidedbox.outsideprocess(
-            ImgProcess::OutsideDetector::thresholdBookmark(srcImage));
+    auto Obox_list=outsidedbox.outsideprocess(srcImage);
 
     //std::cout<<Pairs[0]<<std::endl;
 
@@ -38,22 +37,10 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
     char key = cv::waitKey(1);
 }
 
-#include <iostream>
-#include <fstream>
 #include <string>
-#include "yaml-cpp/yaml.h"
 int main()
 {
-    YAML::Emitter out;
-    out << "Hello, World!";
 
-    std::cout << "Here's the output YAML:\n" << out.c_str();
-
-    YAML::Node config = YAML::LoadFile("../config.yaml");
-
-    if (config["api"]) {
-        std::cout << "Last logged in: " << config["api"].as<std::string>() << std::endl;
-    }
 	CAM_INFO camInfo;
     camInfo.setCamID(0)//设置相机ID
             //.setWidth(1920)//设置图像宽度

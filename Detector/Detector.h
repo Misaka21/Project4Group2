@@ -76,8 +76,8 @@ namespace ImgProcess {
                         const std::vector<outsidemarkpoint>& outsidePoints,
                         const std::string& winname);
     private:
-        int _MIN_Area=1000;
-        int _MAX_Area=10000;
+        int _MIN_Area=10000;
+        int _MAX_Area=100000;
 
         template <typename T>
         void drawPoint(cv::Mat& img, const T& point, const cv::Scalar& color);
