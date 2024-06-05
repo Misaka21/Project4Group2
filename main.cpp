@@ -1,71 +1,66 @@
-﻿// Group2.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
-//
+﻿#include <iostream>
+#include "libmodbus/modbus-tcp.h"
+#include "libmodbus/modbus.h"
+#include <WinSock2.h>
+#include <WS2tcpip.h>
 
-#include"main.h"
-
-
-void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
-{
-	//为了等MV_CC_GetImageBuffer调用后再发送软触发命令
-	Sleep(30);
-	cv::Mat srcImage;
-	if (pFrameInfo)
-	{
-		printf("[INFO]: Get One Frame: Width[%d], Height[%d], nFrameNum[%d]\n",
-			pFrameInfo->nWidth, pFrameInfo->nHeight, pFrameInfo->nFrameNum);
+using namespace std;
+#pragma comment(lib,"ws2_32.lib")
+int main() {
+	// 初始化 Winsock
+	WSADATA wsaData;
+	int wsResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (wsResult != 0) {
+		std::cerr << "WSAStartup 失败，错误代码: " << wsResult << std::endl;
+		return 1;
 	}
-	srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
-	/*******从这里开始写代码********/
-    ImgProcess::InsideDetector detector_(180,lightParams,armorParams);
-    auto Pairs=detector_.detect(srcImage);
-    ImgProcess::OutsideDetector outsidedbox;
-    auto Obox_list=outsidedbox.outsideprocess(srcImage);
 
-    //std::cout<<Pairs[0]<<std::endl;
+	// 创建一个 Modbus TCP 连接
+	modbus_t* ctx = modbus_new_tcp("192.168.0.170", 502);
+	if (ctx == NULL) {
+		std::cerr << "创建 Modbus TCP 上下文失败" << std::endl;
+		WSACleanup(); // 清理 Winsock
+		return 1;
+	}
 
-    // 显示结果图像
-    //cv::imshow("Min Area Rectangles", srcImage);
+	// 连接到 Modbus 设备
+	if (modbus_connect(ctx) == -1) {
+		std::cerr << "连接到 Modbus 设备失败: " << modbus_strerror(errno) << std::endl;
+		modbus_free(ctx);
+		WSACleanup(); // 清理 Winsock
+		return 1;
+	}
+	else {
+		cout << "Connect successfully!" << endl;
+	}
+	// 设置 Modbus 设备地址
+	if (modbus_set_slave(ctx, 1) == -1) {
+		std::cerr << "设置 Modbus 设备地址失败: " << modbus_strerror(errno) << std::endl;
+		modbus_close(ctx);
+		modbus_free(ctx);
+		WSACleanup();
+		return 1;
+	}
 
+	// Sleep(5000);
+	// 假设PLC要求接收两个16位整数的坐标数据
+	uint16_t points[2] = { 100, 200 };
 
+	// 写入两个寄存器
+	int write_result = modbus_write_registers(ctx, 0, 2, points);
+	if (write_result == 2) {
+		std::cout << "坐标发送成功" << std::endl;
+	}
+	else {
+		std::cerr << "发送坐标失败: " << modbus_strerror(errno) << std::endl;
+	}
 
+	// 关闭 Modbus 连接并释放上下文
+	//modbus_close(ctx);
+	//modbus_free(ctx);
 
-	/*******从这里开始建议不要动********/
-    cv::namedWindow("a", cv::WINDOW_NORMAL);
-    cv::resizeWindow("a", 1000, 1000);
-    cv::imshow("a", srcImage);
+	// 清理 Winsock
+	//WSACleanup();
 
-    char key = cv::waitKey(1);
+	return 0;
 }
-
-#include <string>
-int main()
-{
-
-	CAM_INFO camInfo;
-    camInfo.setCamID(0)//设置相机ID
-            //.setWidth(1920)//设置图像宽度
-            //.setHeight(1080)//设置图像高度
-            .setOffsetX(0)//设置图像X偏移
-            .setOffsetY(0)//设置图像Y偏移
-            .setExpTime(5000)//设置曝光时间
-            .setGain(10)//设置增益
-            .setHeartTimeOut(5000)//设置超时时间
-            .setTrigger(SOFTWARE)//设置触发方式
-            .setGamma(sRGB);//设置Gamma模式
-    HikCam cam(camInfo);
-
-	while(1)
-	cam.Grab();
-
-}
-
-// 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
-// 调试程序: F5 或调试 >“开始调试”菜单
-
-// 入门使用技巧: 
-//   1. 使用解决方案资源管理器窗口添加/管理文件
-//   2. 使用团队资源管理器窗口连接到源代码管理
-//   3. 使用输出窗口查看生成输出和其他消息
-//   4. 使用错误列表窗口查看错误
-//   5. 转到“项目”>“添加新项”以创建新的代码文件，或转到“项目”>“添加现有项”以将现有代码文件添加到项目
-//   6. 将来，若要再次打开此项目，请转到“文件”>“打开”>“项目”并选择 .sln 文件
