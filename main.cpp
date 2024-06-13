@@ -1,6 +1,9 @@
 ﻿#include"main.h"
 
 
+Networking::SocketClient sock2pc("192.168.1.2",8080);
+Networking::ModbusClient mod2plc("172.16.26.170", 502);
+
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
 {
 	//为了等MV_CC_GetImageBuffer调用后再发送软触发命令
@@ -37,16 +40,17 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 //#pragma comment(lib,"ws2_32.lib")
 int main() {
 
+	mod2plc.connect();
+	try{
+		mod2plc.writeRegister (0,512);
+	}catch(const std::runtime_error &e){
+		std::cerr<<e.what()<<std::endl;
+	}
+	mod2plc.writeRegister (1,255);
+	mod2plc.writeRegister (2,255);
 
-
-
-
-	Networking::SocketClient socket("192.168.1.2")
-	Networking::ModbusClient client("192.168.5.6", 502);
-
-	client.connect();
 	CAM_INFO camInfo;
-	camInfo.setCamID(0)//设置相机ID
+	camInfo.setCamID(1)//设置相机ID
 					//.setWidth(1920)//设置图像宽度
 					//.setHeight(1080)//设置图像高度
 			.setOffsetX(0)//设置图像X偏移
