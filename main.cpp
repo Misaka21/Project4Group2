@@ -1,8 +1,8 @@
 ﻿#include"main.h"
 
 
-Networking::SocketClient sock2pc("192.168.1.2",8080);
-Networking::ModbusClient mod2plc("172.16.26.170", 502);
+Networking::SocketClient sock2pc("172.16.26.101",8081);
+//Networking::ModbusClient mod2plc("172.16.26.170", 502);
 
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
 {
@@ -40,30 +40,33 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 //#pragma comment(lib,"ws2_32.lib")
 int main() {
 
-	mod2plc.connect();
-	try{
-		mod2plc.writeRegister (0,512);
-	}catch(const std::runtime_error &e){
-		std::cerr<<e.what()<<std::endl;
-	}
-	mod2plc.writeRegister (1,255);
-	mod2plc.writeRegister (2,255);
+	//mod2plc.connect();
+	sock2pc.connect();
+	sock2pc.send ("fuck");
 
-	CAM_INFO camInfo;
-	camInfo.setCamID(1)//设置相机ID
-					//.setWidth(1920)//设置图像宽度
-					//.setHeight(1080)//设置图像高度
-			.setOffsetX(0)//设置图像X偏移
-			.setOffsetY(0)//设置图像Y偏移
-			.setExpTime(5000)//设置曝光时间
-			.setGain(10)//设置增益
-			.setHeartTimeOut(5000)//设置超时时间
-			.setTrigger(SOFTWARE)//设置触发方式
-			.setGamma(sRGB);//设置Gamma模式
-	HikCam cam(camInfo);
-
-	while(1)
-		cam.Grab();
+//	try{
+//		mod2plc.writeRegister (0,512);
+//	}catch(const std::runtime_error &e){
+//		std::cerr<<e.what()<<std::endl;
+//	}
+//	mod2plc.writeRegister (1,255);
+//	mod2plc.writeRegister (2,255);
+//
+//	CAM_INFO camInfo;
+//	camInfo.setCamID(1)//设置相机ID
+//					//.setWidth(1920)//设置图像宽度
+//					//.setHeight(1080)//设置图像高度
+//			.setOffsetX(0)//设置图像X偏移
+//			.setOffsetY(0)//设置图像Y偏移
+//			.setExpTime(5000)//设置曝光时间
+//			.setGain(10)//设置增益
+//			.setHeartTimeOut(5000)//设置超时时间
+//			.setTrigger(SOFTWARE)//设置触发方式
+//			.setGamma(sRGB);//设置Gamma模式
+//	HikCam cam(camInfo);
+//
+//	while(1)
+//		cam.Grab();
 	return 0;
 }
 
