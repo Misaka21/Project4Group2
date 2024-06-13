@@ -61,7 +61,8 @@ HikCam::HikCam(CAM_INFO Info) {
     if (MV_OK != _nRet)
     {
         //printf("Initialize SDK fail! nRet [0x%x]\n", _nRet);
-        std::cout<<RED_START<<"[ERROR]: Initialize SDK fail! nRet [0x%x]\n"<<COLOR_END<<_nRet<<std::endl;
+	    printf("%s[ERROR]: Initialize SDK fail! nRet [0x%x]%s\n", RED_START,_nRet,COLOR_END);
+        //std::cout<<RED_START<<"[ERROR]: Initialize SDK fail! nRet [0x%x]\n"<<COLOR_END<<_nRet<<std::endl;
         //break;
     }
 
@@ -71,7 +72,8 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);
     if (MV_OK != _nRet)
     {
-        std::cout<<RED_START<<"[ERROR]Enum Devices fail! nRet [0x%x]\n"<<COLOR_END<<_nRet<<std::endl;
+		printf("%s[ERROR]: Enum Devices fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        //std::cout<<RED_START<<"[ERROR]Enum Devices fail! nRet [0x%x]\n"<<COLOR_END<<_nRet<<std::endl;
         //printf("Enum Devices fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -105,7 +107,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_CreateHandle(&_handle, stDeviceList.pDeviceInfo[nIndex]);
     if (MV_OK != _nRet)
     {
-        printf("Create _handle fail! nRet [0x%x]\n", _nRet);
+        printf("%s[ERROR]: Create handle fail! nRet [0x%x]%s\n",RED_START, _nRet, COLOR_END);
         //break;
     }
 
@@ -113,7 +115,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_OpenDevice(_handle);
     if (MV_OK != _nRet)
     {
-        printf("%sOpen Device fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]: Open Device fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Open Device fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -298,7 +300,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
     printf("TriggerSource: %s\n", getTriggerSource(Info._nTrigger));
     auto getGammaMode = [](GAMMAMODE nGamma) -> const char* {
         switch (nGamma) {
-            case OFF:       return "OFF";
+            case GAMMA_OFF:       return "OFF";
             case USER:      return "User";
             case sRGB:      return "sRGB";
             default:        return "ERROR";
