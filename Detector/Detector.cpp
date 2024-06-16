@@ -104,12 +104,12 @@ namespace ImgProcess {
                     auto roi = binary_img(rect);
                     cv::imshow("roi",roi);
 
-                    cv::Rect left_roi(0, roi.rows / 2 - 10, 20, 20);
+                    cv::Rect left_roi(25, roi.rows / 2-25, 50, 50);
                     cv::Mat left_sub = roi(left_roi);
                     cv::imshow("roil",left_sub);
 
 
-                    cv::Rect right_roi(roi.cols - 20, roi.rows / 2 - 10, 20, 20);
+                    cv::Rect right_roi(roi.cols - 50, roi.rows / 2 - 25, 50, 50);
                     cv::Mat right_sub = roi(right_roi);
                     cv::imshow("roir",right_sub);
 
@@ -117,8 +117,8 @@ namespace ImgProcess {
                     cv::Scalar right_mean = cv::mean(right_sub);
 
                     pair.type = left_mean[0] > right_mean[0] ? LEFT : RIGHT;
-                    //std::cout<<"fuck"<<pair.type<<std::endl;
-                    cv::waitKey(1);
+                    std::cout<<"fuck"<<pair.type<<std::endl;
+                    cv::waitKey(500);
                     Pairs.emplace_back(pair);
 
                 }
@@ -166,7 +166,6 @@ namespace ImgProcess {
                     continue;
                 }
 
-
                 auto type = isInsideBox(*pair_1, *pair_2);
 
                 if (type)
@@ -211,7 +210,7 @@ namespace ImgProcess {
     {
         float pair_length_ratio = pair_1.length < pair_2.length ? pair_1.length / pair_2.length
                                                                 : pair_2.length / pair_1.length;
-        //std::cout << "pair_length_ratio" << pair_length_ratio << std::endl;
+        std::cout << "pair_length_ratio" << pair_length_ratio << std::endl;
 
         bool pair_ratio_ok = pair_length_ratio > a.min_pair_ratio;
 
@@ -246,9 +245,9 @@ namespace ImgProcess {
         cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
         cv::dilate(iimage, iimage, element);
         cv::erode(iimage, iimage, element);
-        //cv::namedWindow("binary_img", cv::WINDOW_NORMAL);
-        //cv::resizeWindow("binary_img", 1000, 1000);
-        //cv::imshow("binary_img",iimage);
+        cv::namedWindow("binary_img1", cv::WINDOW_NORMAL);
+        cv::resizeWindow("binary_img1", 1000, 1000);
+        cv::imshow("binary_img1",iimage);
         // 查找轮廓
         cv::findContours(iimage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
 
@@ -281,7 +280,7 @@ namespace ImgProcess {
 
                 // 将排序后的点添加到结果向量中
                 outsidemarkpoint points = { rectPoints[0], rectPoints[1], rectPoints[2], rectPoints[3] };
-                std::cout<<"[DEBUG]: Outside"<<points.l1<<points.l2<<points.r1<<points.r2<<std::endl;
+                //std::cout<<"[DEBUG]: Outside"<<points.l1<<points.l2<<points.r1<<points.r2<<std::endl;
                 outsidePoints.push_back(points);
             }
         }

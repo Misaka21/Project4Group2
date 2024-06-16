@@ -12,11 +12,11 @@
 #include"HikCam/hik_camera.h"
 #include "Detector/Detector.h"
 #define YAML_CPP_STATIC_DEFINE
-ImgProcess::InsideDetector::PairParams lightParams={
-        0,0.1,15000,20000
+ImgProcess::InsideDetector::PairParams insideParams={
+        0,0.1,35000,100000
 };
-ImgProcess::InsideDetector::InsideBoxParams armorParams={
-        0,0,500
+ImgProcess::InsideDetector::InsideBoxParams outsideParams={
+        0,0,10000
 };
 
 

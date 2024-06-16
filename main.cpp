@@ -16,10 +16,14 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 	}
 	srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
 	/*******从这里开始写代码********/
-    ImgProcess::InsideDetector detector_(180,lightParams,armorParams);
-    auto Pairs=detector_.detect(srcImage);
+	cv::transpose(srcImage, srcImage);
+	cv::flip(srcImage, srcImage, 1);
+	cv::Mat Image=srcImage.clone();
+
+    ImgProcess::InsideDetector detector_(180,insideParams,outsideParams);
+    auto Pairs=detector_.detect(Image);
     ImgProcess::OutsideDetector outsidedbox;
-    auto Obox_list=outsidedbox.outsideprocess(srcImage);
+    auto Obox_list=outsidedbox.outsideprocess(Image);
 
     //std::cout<<Pairs[0]<<std::endl;
 
@@ -40,39 +44,39 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 //#pragma comment(lib,"ws2_32.lib")
 int main() {
 
-	mod2plc.connect();
-	sock2pc.connect();
-	//sock2pc.connect();
-	//sock2pc.send ("fuck");
-
-	try{
-		mod2plc.writeRegister (1,250);
-	}catch(const std::runtime_error &e){
-		std::cerr<<e.what()<<std::endl;
-	}
-	sock2pc.send ("20240404");
-
-
-	std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
-	sock2pc.send (sentt);
+//	mod2plc.connect();
+//	sock2pc.connect();
+//	//sock2pc.connect();
+//	//sock2pc.send ("fuck");
+//
+//	try{
+//		mod2plc.writeRegister (1,250);
+//	}catch(const std::runtime_error &e){
+//		std::cerr<<e.what()<<std::endl;
+//	}
+//	sock2pc.send ("20240404");
+//
+//
+//	std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
+//	sock2pc.send (sentt);
 //	mod2plc.writeRegister (1,255);
 //	mod2plc.writeRegister (2,255);
 //
-//	CAM_INFO camInfo;
-//	camInfo.setCamID(1)//设置相机ID
-//					//.setWidth(1920)//设置图像宽度
-//					//.setHeight(1080)//设置图像高度
-//			.setOffsetX(0)//设置图像X偏移
-//			.setOffsetY(0)//设置图像Y偏移
-//			.setExpTime(5000)//设置曝光时间
-//			.setGain(10)//设置增益
-//			.setHeartTimeOut(5000)//设置超时时间
-//			.setTrigger(SOFTWARE)//设置触发方式
-//			.setGamma(sRGB);//设置Gamma模式
-//	HikCam cam(camInfo);
-//
-//	while(1)
-//		cam.Grab();
+	CAM_INFO camInfo;
+	camInfo.setCamID(0)//设置相机ID
+					.setWidth(4024)//设置图像宽度
+					.setHeight(3036)//设置图像高度
+			.setOffsetX(0)//设置图像X偏移
+			.setOffsetY(0)//设置图像Y偏移
+			.setExpTime(6000)//设置曝光时间
+			.setGain(18)//设置增益
+			.setHeartTimeOut(500)//设置超时时间
+			.setTrigger(SOFTWARE)//设置触发方式
+			.setGamma(GAMMA_OFF);//设置Gamma模式
+	HikCam cam(camInfo);
+
+	while(1)
+		cam.Grab();
 	return 0;
 }
 
