@@ -28,21 +28,21 @@ namespace Networking {
 
 	int ModbusClient::connect() {
 		if (ctx == nullptr) {
-			return -1; // Indicate error in context creation
+			return -1;
 		}
 		if (modbus_connect (ctx) == -1) {
-			std::cerr<<"[ERROR]: Connection failed: " + std::string (modbus_strerror (errno))<<std::endl;
-			return -1; // Connection failed
+			std::cerr<<"[ERROR]: [ModBus]: Connection failed: " + std::string (modbus_strerror (errno))<<std::endl;
+			return -1;
 		}
 		logInfo ("Connected to the server");
 
 		if(modbus_set_slave (ctx,slave_id)==-1){
-			std::cerr<<"[ERROR]: Set Slave id failed: " + std::string (modbus_strerror (errno))<<std::endl;
-			return -1; // Connection failed
+			std::cerr<<"[ERROR]: [ModBus]: Set Slave id failed: " + std::string (modbus_strerror (errno))<<std::endl;
+			return -1;
 		}
 
 
-		return 0; // Success
+		return 0;
 	}
 
 	void ModbusClient::disconnect() {
@@ -54,22 +54,22 @@ namespace Networking {
 
 	void ModbusClient::readRegisters(int addr, int nb, uint16_t *dest) {
 		if (ctx == nullptr) {
-			throw std::runtime_error("Modbus context not initialized");
+			throw std::runtime_error("[ERROR]: [ModBus]: Modbus context not initialized");
 		}
 		if (modbus_read_registers(ctx, addr, nb, dest) == -1) {
 			//logInfo("[ERROR]: Failed to read registers: " + std::string(modbus_strerror(errno)));
-			throw std::runtime_error("[ERROR]: Failed to read registers: " + std::string(modbus_strerror(errno)));
+			throw std::runtime_error("[ERROR]: [ModBus]: Failed to read registers: " + std::string(modbus_strerror(errno)));
 		}
 		logInfo("Registers read successfully");
 	}
 
 	void ModbusClient::writeRegister(int addr, uint16_t value) {
 		if (ctx == nullptr) {
-			throw std::runtime_error("Modbus context not initialized");
+			throw std::runtime_error("[ERROR]: [ModBus]: Modbus context not initialized");
 		}
 		if (modbus_write_register(ctx, addr, value) == -1) {
 			//logInfo("[ERROR]: Failed to write register: " + std::string(modbus_strerror(errno)));
-			throw std::runtime_error("[ERROR]: Failed to write register: " + std::string(modbus_strerror(errno)));
+			throw std::runtime_error("[ERROR]: [ModBus]: Failed to write register: " + std::string(modbus_strerror(errno)));
 		}
 		logInfo("Written to["+std::to_string(addr)+"]="+std::to_string(value)+" Successfully!");
 	}
