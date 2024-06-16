@@ -8,7 +8,7 @@
 namespace Networking {
 
 
-	ModbusClient::ModbusClient(const std::string &ip, int port) : ip (ip), port (port), ctx (nullptr) {
+	ModbusClient::ModbusClient(const std::string &ip, int port,int slave_id) : ip (ip), port (port), ctx (nullptr),  slave_id(slave_id){
 		ctx = modbus_new_tcp (ip.c_str (), port);
 		if (ctx == nullptr) {
 			std::cerr<<"[ERROR]: Unable to create the libmodbus context"<<std::endl;
@@ -16,6 +16,8 @@ namespace Networking {
 			logInfo ("Modbus TCP context created");
 		}
 	}
+
+
 
 	ModbusClient::~ModbusClient() {
 		if (ctx) {
@@ -33,6 +35,13 @@ namespace Networking {
 			return -1; // Connection failed
 		}
 		logInfo ("Connected to the server");
+
+		if(modbus_set_slave (ctx,slave_id)==-1){
+			std::cerr<<"[ERROR]: Set Slave id failed: " + std::string (modbus_strerror (errno))<<std::endl;
+			return -1; // Connection failed
+		}
+
+
 		return 0; // Success
 	}
 
@@ -62,10 +71,10 @@ namespace Networking {
 			//logInfo("[ERROR]: Failed to write register: " + std::string(modbus_strerror(errno)));
 			throw std::runtime_error("[ERROR]: Failed to write register: " + std::string(modbus_strerror(errno)));
 		}
-		logInfo("Register written successfully");
+		logInfo("Written to["+std::to_string(addr)+"]="+std::to_string(value)+" Successfully!");
 	}
 
 	void ModbusClient::logInfo(const std::string &message) {
-		std::cout << "[INFO]: " << message << "\n";
+		std::cout << "[INFO]: [ModBus]: " << message << "\n";
 	}
 }

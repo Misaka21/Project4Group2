@@ -61,8 +61,8 @@ HikCam::HikCam(CAM_INFO Info) {
     if (MV_OK != _nRet)
     {
         //printf("Initialize SDK fail! nRet [0x%x]\n", _nRet);
-	    printf("%s[ERROR]: Initialize SDK fail! nRet [0x%x]%s\n", RED_START,_nRet,COLOR_END);
-        //std::cout<<RED_START<<"[ERROR]: Initialize SDK fail! nRet [0x%x]\n"<<COLOR_END<<_nRet<<std::endl;
+	    printf("%s[ERROR]:[CAMERA]: Initialize SDK fail! nRet [0x%x]%s\n", RED_START,_nRet,COLOR_END);
+        //std::cout<<RED_START<<"[ERROR]:[CAMERA]: Initialize SDK fail! nRet [0x%x]\n"<<COLOR_END<<_nRet<<std::endl;
         //break;
     }
 
@@ -72,7 +72,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);
     if (MV_OK != _nRet)
     {
-		printf("%s[ERROR]: Enum Devices fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+		printf("%s[ERROR]:[CAMERA]: Enum Devices fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //std::cout<<RED_START<<"[ERROR]Enum Devices fail! nRet [0x%x]\n"<<COLOR_END<<_nRet<<std::endl;
         //printf("Enum Devices fail! nRet [0x%x]\n", _nRet);
         //break;
@@ -93,7 +93,7 @@ HikCam::HikCam(CAM_INFO Info) {
     }
     else
     {
-        std::cout<<RED_START<<"[ERROR]: Find No Devices!\n"<<COLOR_END<<std::endl;
+        std::cout<<RED_START<<"[ERROR]:[CAMERA]: Find No Devices!\n"<<COLOR_END<<std::endl;
         //printf("Find No Devices!\n");
         //break;
     }
@@ -107,7 +107,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_CreateHandle(&_handle, stDeviceList.pDeviceInfo[nIndex]);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Create handle fail! nRet [0x%x]%s\n",RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Create handle fail! nRet [0x%x]%s\n",RED_START, _nRet, COLOR_END);
         //break;
     }
 
@@ -115,7 +115,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_OpenDevice(_handle);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Open Device fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Open Device fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Open Device fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -129,13 +129,13 @@ HikCam::HikCam(CAM_INFO Info) {
             _nRet = MV_CC_SetIntValue(_handle, "GevSCPSPacketSize", nPacketSize);
             if (_nRet != MV_OK)
             {
-                printf("%s[Warning]: Set Packet Size fail nRet [0x%x]!%s\n", YELLOW_START, _nRet, COLOR_END);
+                printf("%s[WARNING]:[CAMERA]: Set Packet Size fail nRet [0x%x]!%s\n", YELLOW_START, _nRet, COLOR_END);
                 //printf("Warning: Set Packet Size fail nRet [0x%x]!", _nRet);
             }
         }
         else
         {
-            printf("%s[Warning]: Get Packet Size fail nRet [0x%x]!%s\n", YELLOW_START, nPacketSize, COLOR_END);
+            printf("%s[WARNING]:[CAMERA]: Get Packet Size fail nRet [0x%x]!%s\n", YELLOW_START, nPacketSize, COLOR_END);
             //printf("Warning: Get Packet Size fail nRet [0x%x]!", nPacketSize);
         }
     }
@@ -145,7 +145,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_SetEnumValue(_handle, "TriggerMode", MV_TRIGGER_MODE_ON);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Set Trigger Mode fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Set Trigger Mode fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Set Trigger Mode fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -156,7 +156,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_RegisterImageCallBackEx(_handle, ImageCallBackEx, _handle);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Register Image CallBack fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Register Image CallBack fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Register Image CallBack fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -164,7 +164,7 @@ HikCam::HikCam(CAM_INFO Info) {
     _nRet = MV_CC_StartGrabbing(_handle);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Start Grabbing fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Start Grabbing fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Start Grabbing fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -175,7 +175,7 @@ void HikCam::Grab() {
     _nRet = MV_CC_SetCommandValue(_handle, "TriggerSoftware");
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Send Trigger Software command fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Send Trigger Software command fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Send Trigger Software command fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -189,7 +189,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
         _nRet = MV_CC_SetEnumValueByString(_handle, "TriggerSource", "Software");
         if (MV_OK != _nRet)
         {
-            printf("%s[WARNING]: Set Trigger Software fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+            printf("%s[WARNING]:[CAMERA]: Set Trigger Software fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
 			//printf("Set Trigger Software fail! nRet [0x%x]\n", _nRet);
 			//break;
 		}
@@ -199,7 +199,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 		_nRet = MV_CC_SetEnumValueByString(_handle, "TriggerSource", "Line0");
         if (MV_OK != _nRet)
         {
-            printf("%s[WARNING]: Set Trigger Line0 fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+            printf("%s[WARNING]:[CAMERA]: Set Trigger Line0 fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
 			//printf("Set Trigger Line0 fail! nRet [0x%x]\n", _nRet);
 			//break;
 		}
@@ -209,7 +209,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 		_nRet = MV_CC_SetEnumValueByString(_handle, "TriggerSource", "Line2");
         if (MV_OK != _nRet)
         {
-            printf("%s[WARNING]: Set Trigger Line2 fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+            printf("%s[WARNING]:[CAMERA]: Set Trigger Line2 fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
 			//printf("Set Trigger Line2 fail! nRet [0x%x]\n", _nRet);
 			//break;
 		}
@@ -218,7 +218,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
     _nRet = MV_CC_SetFloatValue(_handle, "ExposureTime", Info._nExpTime);
     if (MV_OK != _nRet)
     {
-        printf("%s[WARNING]: Set ExposureTime fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[WARNING]:[CAMERA]: Set ExposureTime fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
 		//printf("Set ExposureTime fail! nRet [0x%x]\n", _nRet);
 		//break;
 	}
@@ -226,7 +226,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
     _nRet = MV_CC_SetFloatValue(_handle, "Gain", Info._nGain);
     if (MV_OK != _nRet)
     {
-        printf("%s[WARNING]: Set Gain fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[WARNING]:[CAMERA]: Set Gain fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
         //printf("Set Gain fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -234,7 +234,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
     _nRet = MV_CC_SetIntValue(_handle, "Width", Info._nWidth);
     if (MV_OK != _nRet)
     {
-        printf("%s[WARNING]: Set Width fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[WARNING]:[CAMERA]: Set Width fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
 		//printf("Set Width fail! nRet [0x%x]\n", _nRet);
 		//break;
 	}
@@ -242,7 +242,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 	_nRet = MV_CC_SetIntValue(_handle, "Height", Info._nHeight);
     if (MV_OK != _nRet)
     {
-        printf("%s[WARNING]: Set Height fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[WARNING]:[CAMERA]: Set Height fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
         // printf("Set Height fail! nRet [0x%x]\n", _nRet);
 		//break;
 	}
@@ -250,7 +250,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 	_nRet = MV_CC_SetIntValue(_handle, "OffsetX", Info._nOffsetX);
     if (MV_OK != _nRet)
     {
-        printf("%s[WARNING]: Set OffsetX fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[WARNING]:[CAMERA]: Set OffsetX fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
 		//printf("Set OffsetX fail! nRet [0x%x]\n", _nRet);
 		//break;
 	}
@@ -258,7 +258,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
 	_nRet = MV_CC_SetIntValue(_handle, "OffsetY", Info._nOffsetY);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Set OffsetY fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Set OffsetY fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
 		//printf("Set OffsetY fail! nRet [0x%x]\n", _nRet);
 		//break;
 	}
@@ -266,7 +266,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
     _nRet = MV_CC_SetIntValue(_handle, "GevHeartbeatTimeout", Info._nHeartTimeOut);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Set HeartbeatTimeout fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Set HeartbeatTimeout fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
         //printf("Set OffsetY fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -276,7 +276,7 @@ void HikCam::SetAttribute(CAM_INFO Info) {
         _nRet = MV_CC_SetEnumValue(_handle, "GammaSelector", Info._nGamma);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Set GammaMode fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Set GammaMode fail! nRet [0x%x]%s\n", YELLOW_START, _nRet, COLOR_END);
     }
 
     //输出当前设置
@@ -317,7 +317,7 @@ HikCam::~HikCam() {
     _nRet = MV_CC_StopGrabbing(_handle);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Stop Grabbing fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Stop Grabbing fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Stop Grabbing fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -326,7 +326,7 @@ HikCam::~HikCam() {
     _nRet = MV_CC_RegisterImageCallBackEx(_handle, NULL, NULL);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Unregister Image CallBack fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Unregister Image CallBack fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Unregister Image CallBack fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -335,7 +335,7 @@ HikCam::~HikCam() {
     _nRet = MV_CC_CloseDevice(_handle);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Close Device fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Close Device fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Close Device fail! nRet [0x%x]\n", _nRet);
         //break;
     }
@@ -344,7 +344,7 @@ HikCam::~HikCam() {
     _nRet = MV_CC_DestroyHandle(_handle);
     if (MV_OK != _nRet)
     {
-        printf("%s[ERROR]: Destroy _handle fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
+        printf("%s[ERROR]:[CAMERA]: Destroy _handle fail! nRet [0x%x]%s\n", RED_START, _nRet, COLOR_END);
         //printf("Destroy _handle fail! nRet [0x%x]\n", _nRet);
         //break;
     }

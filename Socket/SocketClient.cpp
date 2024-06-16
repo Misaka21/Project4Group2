@@ -22,13 +22,13 @@ namespace Networking {
 
 	bool SocketClient::connect() {
 		if (isConnected) {
-			std::cerr << "Already connected to a server." << std::endl;
+			std::cerr << "[WARNING]: [Socket]: Already connected to a server." << std::endl;
 			return false;
 		}
 
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sock == INVALID_SOCKET) {
-			std::cerr << "Error at socket(): " << WSAGetLastError() << std::endl;
+			std::cerr << "[ERROR]: [Socket]: Error at socket(): " << WSAGetLastError() << std::endl;
 			WSACleanup();
 			return false;
 		}
@@ -41,10 +41,10 @@ namespace Networking {
 		if (::connect(sock, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
 			closesocket(sock);
 			WSACleanup();
-			std::cerr << "Unable to connect to server: " << WSAGetLastError() << std::endl;
+			std::cerr << "[ERROR]: [Socket]: Unable to connect to server: " << WSAGetLastError() << std::endl;
 			return false;
 		}
-
+		std::cout<<"[INFO]: [Socket]: Already connected to PC:"<<ip<<std::endl;
 		isConnected = true;
 		return true;
 	}
@@ -59,26 +59,28 @@ namespace Networking {
 
 	bool SocketClient::send(const std::string& message) {
 		if (!isConnected) {
-			std::cerr << "Not connected to any server." << std::endl;
+			std::cerr << "[ERROR]: [Socket]: Not connected to any server." << std::endl;
 			return false;
 		}
 
 		int bytesSent = ::send(sock, message.c_str(), message.length(), 0);
+		std::cout<<"[INFO]: [Socket]: Successfully send string:"<<message<<std::endl;
 		if (bytesSent == SOCKET_ERROR) {
-			std::cerr << "Send failed: " << WSAGetLastError() << std::endl;
+			std::cerr << "[ERROR]: [Socket]: Send failed: " << WSAGetLastError() << std::endl;
 			disconnect();
 			return false;
 		}
+
 		return true;
 	}
 	bool SocketClient::send(const std::vector<uint8_t>& data) {
 		if (!isConnected) {
-			std::cerr << "Not connected to any server." << std::endl;
+			std::cerr << "[ERROR]: [Socket]: Not connected to any server." << std::endl;
 			return false;
 		}
 
 		if (data.empty()) {
-			std::cerr << "Data to send is empty." << std::endl;
+			std::cerr << "[ERROR]: [Socket]: Data to send is empty." << std::endl;
 			return false;
 		}
 
@@ -88,6 +90,11 @@ namespace Networking {
 			disconnect();
 			return false;
 		}
+		std::cout<<"[INFO]: [Socket]: Successfully send number:";
+		for(const auto& elem:data){
+			std::cout<<static_cast<int>(elem)<<",";
+		}
+		std::cout<<std::endl;
 		return true;
 	}
 

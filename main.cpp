@@ -1,8 +1,8 @@
 ﻿#include"main.h"
 
 
-Networking::SocketClient sock2pc("172.16.26.101",8081);
-//Networking::ModbusClient mod2plc("172.16.26.170", 502);
+Networking::SocketClient sock2pc("172.16.26.80",465);
+Networking::ModbusClient mod2plc("172.16.26.170", 502,2);
 
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
 {
@@ -40,15 +40,21 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 //#pragma comment(lib,"ws2_32.lib")
 int main() {
 
-	//mod2plc.connect();
+	mod2plc.connect();
 	sock2pc.connect();
-	sock2pc.send ("fuck");
+	//sock2pc.connect();
+	//sock2pc.send ("fuck");
 
-//	try{
-//		mod2plc.writeRegister (0,512);
-//	}catch(const std::runtime_error &e){
-//		std::cerr<<e.what()<<std::endl;
-//	}
+	try{
+		mod2plc.writeRegister (1,250);
+	}catch(const std::runtime_error &e){
+		std::cerr<<e.what()<<std::endl;
+	}
+	sock2pc.send ("20240404");
+
+
+	std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
+	sock2pc.send (sentt);
 //	mod2plc.writeRegister (1,255);
 //	mod2plc.writeRegister (2,255);
 //

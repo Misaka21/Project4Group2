@@ -16,7 +16,7 @@
 namespace Networking {
 	class ModbusClient {
 	public:
-		ModbusClient(const std::string& ip, int port);
+		ModbusClient(const std::string& ip, int port,int slave_id);
 		~ModbusClient();
 
 		int connect();
@@ -61,6 +61,7 @@ namespace Networking {
 	private:
 		std::string ip;
 		int port;
+		int slave_id;
 		modbus_t *ctx;
 	};
 
