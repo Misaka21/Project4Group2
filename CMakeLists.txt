@@ -13,8 +13,8 @@ add_executable(Group2 main.cpp
         Modbus/ModbusClient.h
         Socket/SocketClient.cpp
         Socket/SocketClient.h
-        HandEye/HandEyeTransmit.cpp
-        HandEye/HandEyeTransmit.h
+        HandEye/HandEyeTransform.cpp
+        HandEye/HandEyeTransform.h
 )
 
 include_directories("${CMAKE_SOURCE_DIR}/Includes")
