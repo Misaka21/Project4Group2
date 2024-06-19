@@ -7,12 +7,12 @@
 namespace Transform {
 
 
-	void calib::detectboard(){
+	void Calib::detectboard(){
 		// 检测棋盘格角点
 		cv::Mat grayImage=this->img.clone(),image=this->img.clone();
 		std::vector<cv::Point2f> corners;  // 存储角点
-		int board_width = 9;               // 标定板宽度角点数
-		int board_height = 6;              // 标定板高度角点数
+		int board_width = 3;               // 标定板宽度角点数
+		int board_height = 3;              // 标定板高度角点数
 		cv::Size board_size(board_width, board_height);
 
 		bool found = cv::findChessboardCorners(grayImage, board_size, corners,
@@ -35,7 +35,8 @@ namespace Transform {
 				// 控制台输出坐标信息
 				std::cout << "角点 " << i+1 << ": (" << corners[i].x << ", " << corners[i].y << ")" << std::endl;
 			}
-
+			cam_x=corners[4].x;
+			cam_y=corners[4].y;
 			cv::imshow("Detected Corners with Coordinates", image);
 			cv::waitKey(1);
 		} else {
@@ -43,16 +44,18 @@ namespace Transform {
 		}
 	}
 
-	void calib::calibfunc(){
+	void Calib::calibfunc(){
 		char cont = 'y';
 
 		while (cont == 'y') {
-
-			std::cout<<"正在标定第"<<n<<"次："<<std::endl;
-			std::cout<<"读取相机中的x是:"<<this->cam_x<<std::endl;
-			std::cout<<"读取相机中的y是:"<<this->cam_y<<std::endl;
-			std::cout<<"请输入机械臂的x坐标:"<<this->arm_x<<std::endl;
-			std::cout<<"请输入机械臂的x坐标:"<<this->arm_y<<std::endl;
+			//std::cout<<"正在标定第"<<n<<std::endl;
+			detectboard();
+			std::cout<<"读取相机中的x是:"<<cam_x<<std::endl;
+			std::cout<<"读取相机中的y是:"<<cam_y<<std::endl;
+			std::cout<<"请输入机械臂的x坐标:";
+			std::cin>>arm_x;
+			std::cout<<"请输入机械臂的y坐标:";
+			std::cin>>arm_y;
 
 			// 将新坐标加入列表
 			Eigen::Matrix<float, 2, 1> camMatrix, armMatrix;
@@ -65,21 +68,22 @@ namespace Transform {
 		}
 		saveToYAML();
 		std::cout << "标定数据已保存到 YAML 文件中。\n";
-
+		exit (0);
 
 	}
 
-	void calib::getimg(cv::Mat image) {
-		image=this->img;
+	void Calib::getimg(cv::Mat image) {
+		this->img=image;
 	}
 
-	void calib::saveToYAML() {
+	void Calib::saveToYAML() {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Calibration Data" << YAML::Value << YAML::BeginSeq;
-
+		int id=1;
 		for (const auto& coord : coords) {
 			out << YAML::BeginMap;
+			out << YAML::Key << "id" <<YAML::Value <<id++;
 			out << YAML::Key << "Camera" << YAML::Value << YAML::Flow << std::vector<float>{coord.first(0), coord.first(1)};
 			out << YAML::Key << "Arm" << YAML::Value << YAML::Flow << std::vector<float>{coord.second(0), coord.second(1)};
 			out << YAML::EndMap;
@@ -95,6 +99,6 @@ namespace Transform {
 
 	}
 
-	calib::calib() : cam_x(0), cam_y(0), arm_x(0), arm_y(0), nn(0) {}
+	Calib::Calib() : cam_x(0), cam_y(0), arm_x(0), arm_y(0), n(0) {}
 
 } // Transform

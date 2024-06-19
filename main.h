@@ -10,6 +10,7 @@
 #include "Modbus/ModbusClient.h"
 #include "Socket/SocketClient.h"
 #include"HikCam/hik_camera.h"
+#include "HandEye/HandEyeTransform.h"
 #include "Detector/Detector.h"
 #define YAML_CPP_STATIC_DEFINE
 ImgProcess::InsideDetector::PairParams insideParams={

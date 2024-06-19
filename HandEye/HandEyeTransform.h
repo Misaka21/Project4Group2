@@ -19,9 +19,9 @@
 #include <yaml-cpp/yaml.h>
 
 namespace Transform {
-	class calib{
+	class Calib{
 	public:
-		calib();
+		Calib();
 		void detectboard();
 		void calibfunc();
 		void getimg(cv::Mat image);
@@ -33,7 +33,7 @@ namespace Transform {
 
 		cv::Mat img;
 		int n;
-		void saveToYAML()
+		void saveToYAML();
 	};
 
 

@@ -69,7 +69,8 @@ namespace Networking {
 		}
 		if (modbus_write_register(ctx, addr, value) == -1) {
 			//logInfo("[ERROR]: Failed to write register: " + std::string(modbus_strerror(errno)));
-			throw std::runtime_error("[ERROR]: [ModBus]: Failed to write register: " + std::string(modbus_strerror(errno)));
+			throw std::runtime_error("[ERROR]: [ModBus]: Failed to write register: address"
+			+ std::to_string (addr)+std::string (",value:")+std::to_string (value)+std::string(modbus_strerror(errno)));
 		}
 		logInfo("Written to["+std::to_string(addr)+"]="+std::to_string(value)+" Successfully!");
 	}

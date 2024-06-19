@@ -3,6 +3,7 @@
 
 Networking::SocketClient sock2pc("172.16.26.80",465);
 Networking::ModbusClient mod2plc("172.16.26.170", 502,2);
+Transform::Calib calib;
 
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
 {
@@ -16,12 +17,25 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 	}
 	srcImage = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
 	/*******从这里开始写代码********/
+
 	cv::transpose(srcImage, srcImage);
 	cv::flip(srcImage, srcImage, 1);
+	calib.getimg (srcImage);
 	cv::Mat Image=srcImage.clone();
 
     ImgProcess::InsideDetector detector_(180,insideParams,outsideParams);
     auto Pairs=detector_.detect(Image);
+	if(!Pairs.empty()){
+		try{
+			
+			mod2plc.writeRegister (0,1);
+			mod2plc.writeRegister (1,250);
+			mod2plc.writeRegister (2,251);
+			mod2plc.writeRegister (3,257);
+		}catch(const std::runtime_error &e){
+			std::cerr<<e.what()<<std::endl;
+		}
+	}
     ImgProcess::OutsideDetector outsidedbox;
     auto Obox_list=outsidedbox.outsideprocess(Image);
 
@@ -44,24 +58,20 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 //#pragma comment(lib,"ws2_32.lib")
 int main() {
 
-//	mod2plc.connect();
-//	sock2pc.connect();
-//	//sock2pc.connect();
-//	//sock2pc.send ("fuck");
-//
-//	try{
-//		mod2plc.writeRegister (1,250);
-//	}catch(const std::runtime_error &e){
-//		std::cerr<<e.what()<<std::endl;
-//	}
-//	sock2pc.send ("20240404");
-//
-//
-//	std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
-//	sock2pc.send (sentt);
-//	mod2plc.writeRegister (1,255);
-//	mod2plc.writeRegister (2,255);
-//
+	mod2plc.connect();
+	//sock2pc.connect();
+	//sock2pc.connect();
+	//sock2pc.send ("fuck");
+
+
+	//sock2pc.send ("20240404");
+
+
+	//std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
+	//sock2pc.send (sentt);
+	//mod2plc.writeRegister (1,255);
+	//mod2plc.writeRegister (2,255);
+
 	CAM_INFO camInfo;
 	camInfo.setCamID(0)//设置相机ID
 					.setWidth(4024)//设置图像宽度
@@ -75,8 +85,10 @@ int main() {
 			.setGamma(GAMMA_OFF);//设置Gamma模式
 	HikCam cam(camInfo);
 
-	while(1)
+	while(1){
 		cam.Grab();
+		calib.calibfunc();
+	}
 	return 0;
 }
 
