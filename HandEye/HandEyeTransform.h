@@ -28,12 +28,16 @@ namespace Transform {
 	private:
 		float cam_x, cam_y;    // 相机坐标
 		float arm_x, arm_y;    // 机械臂坐标
-		const std::string& filename="calibration.yaml";
+
 		std::vector<std::pair<Eigen::Matrix<float, 2, 1>, Eigen::Matrix<float, 2, 1>>> coords; // 存储所有坐标
 
 		cv::Mat img;
 		int n;
 		void saveToYAML();
+
+		void linear_regression(const std::vector<std::pair<Eigen::Matrix<float, 2, 1>, Eigen::Matrix<float, 2, 1>>>& tmpcoord,
+		                       Eigen::Vector2f& camera_fit_params,
+		                       Eigen::Vector2f& arm_fit_params);
 	};
 
 

@@ -48,13 +48,14 @@ namespace Transform {
 		char cont = 'y';
 
 		while (cont == 'y') {
-			//std::cout<<"正在标定第"<<n<<std::endl;
+			//std::cout<<"正在标定第"<<n<<"个"<<std::endl;
+			std::cout<<"This is NO."<<n<<"\n";
 			detectboard();
-			std::cout<<"读取相机中的x是:"<<cam_x<<std::endl;
-			std::cout<<"读取相机中的y是:"<<cam_y<<std::endl;
-			std::cout<<"请输入机械臂的x坐标:";
+			std::cout<<"Read the x-coordinate in the camera:"<<cam_x<<std::endl;
+			std::cout<<"Read the y-coordinate in the camera:"<<cam_y<<std::endl;
+			std::cout<<"Please enter the x-coordinate of the robotic arm:";
 			std::cin>>arm_x;
-			std::cout<<"请输入机械臂的y坐标:";
+			std::cout<<"Please enter the y-coordinate of the robotic arm:";
 			std::cin>>arm_y;
 
 			// 将新坐标加入列表
@@ -70,10 +71,6 @@ namespace Transform {
 		std::cout << "标定数据已保存到 YAML 文件中。\n";
 		exit (0);
 
-	}
-
-	void Calib::getimg(cv::Mat image) {
-		this->img=image;
 	}
 
 	void Calib::saveToYAML() {
@@ -93,12 +90,35 @@ namespace Transform {
 		out << YAML::EndMap;
 
 		// 写入文件
+		const std::string& filename="calibration.yaml";
 		std::ofstream fout(filename);
 		fout << out.c_str();
 		fout.close();
 
 	}
 
+	void Calib::getimg(cv::Mat image) {
+		this->img=image;
+	}
+
 	Calib::Calib() : cam_x(0), cam_y(0), arm_x(0), arm_y(0), n(0) {}
 
+	void Calib::linear_regression(const std::vector<std::pair<Eigen::Matrix<float, 2, 1>, Eigen::Matrix<float, 2, 1>>>& tmpcoord,
+	                              Eigen::Vector2f& camera_fit_params,
+	                              Eigen::Vector2f& arm_fit_params) {
+		int n1 = tmpcoord.size();
+		Eigen::MatrixXf A(n1, 2);
+		Eigen::VectorXf b_camera(n1), b_arm(n);
+
+		for (int i = 0; i < n1; ++i) {
+			A(i, 0) = tmpcoord[i].first(0); // Camera x
+			A(i, 1) = 1.0;
+			b_camera(i) = tmpcoord[i].first(1); // Camera y
+			b_arm(i) = tmpcoord[i].second(1);   // Arm y
+		}
+
+		// Least squares solution
+		camera_fit_params = A.colPivHouseholderQr().solve(b_camera);
+		arm_fit_params = A.colPivHouseholderQr().solve(b_arm);
+	}
 } // Transform
