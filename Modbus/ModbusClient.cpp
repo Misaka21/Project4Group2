@@ -6,7 +6,12 @@
 #include <stdexcept>
 
 namespace Networking {
+uint16_t swapHighBite(uint16_t value){
+	uint8_t highBite=(value&0xFF00)>>8;
+	uint8_t lowBite =value&0x00FF;
 
+	return ((lowBite<<8)|highBite);
+}
 
 	ModbusClient::ModbusClient(const std::string &ip, int port,int slave_id) : ip (ip), port (port), ctx (nullptr),  slave_id(slave_id){
 		ctx = modbus_new_tcp (ip.c_str (), port);

@@ -37,6 +37,8 @@ namespace Transform {
 			}
 			cam_x=corners[4].x;
 			cam_y=corners[4].y;
+			cv::namedWindow("Detected Corners with Coordinates", cv::WINDOW_NORMAL);
+			cv::resizeWindow("Detected Corners with Coordinates", 1518, 2012);
 			cv::imshow("Detected Corners with Coordinates", image);
 			cv::waitKey(1);
 		} else {
@@ -49,7 +51,7 @@ namespace Transform {
 
 		while (cont == 'y') {
 			//std::cout<<"正在标定第"<<n<<"个"<<std::endl;
-			std::cout<<"This is NO."<<n<<"\n";
+			std::cout<<"This is NO."<<n++<<"\n";
 			detectboard();
 			std::cout<<"Read the x-coordinate in the camera:"<<cam_x<<std::endl;
 			std::cout<<"Read the y-coordinate in the camera:"<<cam_y<<std::endl;
@@ -97,9 +99,7 @@ namespace Transform {
 
 	}
 
-	void Calib::getimg(cv::Mat image) {
-		this->img=image;
-	}
+
 
 	Calib::Calib() : cam_x(0), cam_y(0), arm_x(0), arm_y(0), n(0) {}
 
@@ -121,4 +121,5 @@ namespace Transform {
 		camera_fit_params = A.colPivHouseholderQr().solve(b_camera);
 		arm_fit_params = A.colPivHouseholderQr().solve(b_arm);
 	}
+
 } // Transform

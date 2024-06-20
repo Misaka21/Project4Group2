@@ -2,7 +2,7 @@
 
 
 Networking::SocketClient sock2pc("172.16.26.80",465);
-Networking::ModbusClient mod2plc("172.16.26.170", 502,2);
+Networking::ModbusClient mod2plc("172.16.26.170", 504,1);
 Transform::Calib calib;
 
 void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
@@ -20,24 +20,24 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 
 	cv::transpose(srcImage, srcImage);
 	cv::flip(srcImage, srcImage, 1);
-	calib.getimg (srcImage);
-	cv::Mat Image=srcImage.clone();
-
-    ImgProcess::InsideDetector detector_(180,insideParams,outsideParams);
-    auto Pairs=detector_.detect(Image);
-	if(!Pairs.empty()){
-		try{
-			
-			mod2plc.writeRegister (0,1);
-			mod2plc.writeRegister (1,250);
-			mod2plc.writeRegister (2,251);
-			mod2plc.writeRegister (3,257);
-		}catch(const std::runtime_error &e){
-			std::cerr<<e.what()<<std::endl;
-		}
-	}
-    ImgProcess::OutsideDetector outsidedbox;
-    auto Obox_list=outsidedbox.outsideprocess(Image);
+	calib.img=srcImage.clone();
+//	cv::Mat Image=srcImage.clone();
+//
+//    ImgProcess::InsideDetector detector_(180,insideParams,outsideParams);
+//    auto Pairs=detector_.detect(Image);
+//	if(!Pairs.empty()){
+//		try{
+//
+//			mod2plc.writeRegister (0,1);
+//			mod2plc.writeRegister (1,250);
+//			mod2plc.writeRegister (2,251);
+//			mod2plc.writeRegister (3,257);
+//		}catch(const std::runtime_error &e){
+//			std::cerr<<e.what()<<std::endl;
+//		}
+//	}
+//    ImgProcess::OutsideDetector outsidedbox;
+//    auto Obox_list=outsidedbox.outsideprocess(Image);
 
     //std::cout<<Pairs[0]<<std::endl;
 
@@ -58,7 +58,6 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 //#pragma comment(lib,"ws2_32.lib")
 int main() {
 
-	mod2plc.connect();
 	//sock2pc.connect();
 	//sock2pc.connect();
 	//sock2pc.send ("fuck");
@@ -69,26 +68,31 @@ int main() {
 
 	//std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
 	//sock2pc.send (sentt);
-	//mod2plc.writeRegister (1,255);
+	mod2plc.connect();
+
+	mod2plc.writeRegister (0,Networking::swapHighBite (1));
+	mod2plc.writeRegister (1,Networking::swapHighBite (681));
+	mod2plc.writeRegister (2,Networking::swapHighBite (358));
+
 	//mod2plc.writeRegister (2,255);
 
-	CAM_INFO camInfo;
-	camInfo.setCamID(0)//设置相机ID
-					.setWidth(4024)//设置图像宽度
-					.setHeight(3036)//设置图像高度
-			.setOffsetX(0)//设置图像X偏移
-			.setOffsetY(0)//设置图像Y偏移
-			.setExpTime(6000)//设置曝光时间
-			.setGain(18)//设置增益
-			.setHeartTimeOut(500)//设置超时时间
-			.setTrigger(SOFTWARE)//设置触发方式
-			.setGamma(GAMMA_OFF);//设置Gamma模式
-	HikCam cam(camInfo);
-
-	while(1){
-		cam.Grab();
-		calib.calibfunc();
-	}
+//	CAM_INFO camInfo;
+//	camInfo.setCamID(0)//设置相机ID
+//					.setWidth(4024)//设置图像宽度
+//					.setHeight(3036)//设置图像高度
+//			.setOffsetX(0)//设置图像X偏移
+//			.setOffsetY(0)//设置图像Y偏移
+//			.setExpTime(6000)//设置曝光时间
+//			.setGain(18)//设置增益
+//			.setHeartTimeOut(500)//设置超时时间
+//			.setTrigger(SOFTWARE)//设置触发方式
+//			.setGamma(GAMMA_OFF);//设置Gamma模式
+//	HikCam cam(camInfo);
+//
+//	while(1){
+//		cam.Grab();
+//		calib.calibfunc();
+//	}
 	return 0;
 }
 

@@ -14,6 +14,7 @@
 #include <iostream>
 
 namespace Networking {
+	uint16_t swapHighBite(uint16_t value);
 	class ModbusClient {
 	public:
 		ModbusClient(const std::string& ip, int port,int slave_id);
