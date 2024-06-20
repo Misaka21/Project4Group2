@@ -70,29 +70,32 @@ int main() {
 	//sock2pc.send (sentt);
 	mod2plc.connect();
 
-	mod2plc.writeRegister (0,Networking::swapHighBite (1));
-	mod2plc.writeRegister (1,Networking::swapHighBite (681));
-	mod2plc.writeRegister (2,Networking::swapHighBite (358));
+
 
 	//mod2plc.writeRegister (2,255);
 
-//	CAM_INFO camInfo;
-//	camInfo.setCamID(0)//设置相机ID
-//					.setWidth(4024)//设置图像宽度
-//					.setHeight(3036)//设置图像高度
-//			.setOffsetX(0)//设置图像X偏移
-//			.setOffsetY(0)//设置图像Y偏移
-//			.setExpTime(6000)//设置曝光时间
-//			.setGain(18)//设置增益
-//			.setHeartTimeOut(500)//设置超时时间
-//			.setTrigger(SOFTWARE)//设置触发方式
-//			.setGamma(GAMMA_OFF);//设置Gamma模式
-//	HikCam cam(camInfo);
+	CAM_INFO camInfo;
+	camInfo.setCamID(0)//设置相机ID
+					.setWidth(4024)//设置图像宽度
+					.setHeight(3036)//设置图像高度
+			.setOffsetX(0)//设置图像X偏移
+			.setOffsetY(0)//设置图像Y偏移
+			.setExpTime(6000)//设置曝光时间
+			.setGain(18)//设置增益
+			.setHeartTimeOut(500)//设置超时时间
+			.setTrigger(SOFTWARE)//设置触发方式
+			.setGamma(GAMMA_OFF);//设置Gamma模式
+	HikCam cam(camInfo);
 //
-//	while(1){
-//		cam.Grab();
-//		calib.calibfunc();
-//	}
+	while(1){
+		cam.Grab();
+		calib.detectboard();
+		std::cout<<calib.cam_x<<" "<<calib.cam_y<<" "<<calib.cam_x*-0.18+1156<<" "<<calib.cam_y*0.18+19.59<<std::endl;
+		mod2plc.writeRegister (0,1);
+		mod2plc.writeRegister (1,Networking::swapHighBite (calib.cam_x*-0.18+1156));
+		mod2plc.writeRegister (2,Networking::swapHighBite (calib.cam_y*0.18+19.59));
+		Sleep (200000);
+	}
 	return 0;
 }
 

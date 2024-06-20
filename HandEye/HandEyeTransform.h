@@ -26,8 +26,8 @@ namespace Transform {
 		void calibfunc();
 		void getimg(cv::Mat image);
 		cv::Mat img;
-	private:
 		float cam_x, cam_y;    // 相机坐标
+	private:
 		float arm_x, arm_y;    // 机械臂坐标
 
 		std::vector<std::pair<Eigen::Matrix<float, 2, 1>, Eigen::Matrix<float, 2, 1>>> coords; // 存储所有坐标
