@@ -100,24 +100,24 @@ namespace Networking {
 
 
 	std::string SocketClient::receive(int size) {
-		if (!isConnected) {
-			std::cerr << "Not connected to any server." << std::endl;
+
+
+		char* buffer = new char[size + 1];  // 留一个额外的字节用于字符串结尾的空字符
+		int bytesReceived = recv(sock, buffer, size, 0);
+
+		if (bytesReceived > 0) {
+			buffer[bytesReceived] = '\0';  // 确保缓冲区是以空字符结尾的字符串
+			std::string receivedData(buffer);
+			//std::cout << "Received: " << receivedData << std::endl;  // 打印接收到的数据
+			delete[] buffer;  // 释放缓冲区内存
+			return receivedData;
+		} else {
+			//std::cerr << "Error receiving data or connection closed" << std::endl;
+			delete[] buffer;  // 释放缓冲区内存
 			return "";
 		}
 
-		char* buffer = new char[size];
-		int bytesReceived = recv(sock, buffer, size, 0);
-		if (bytesReceived > 0) {
-			std::string retStr(buffer, bytesReceived);
-			delete[] buffer;
-			return retStr;
-		} else if (bytesReceived == 0) {
-			std::cout << "Connection closed." << std::endl;
-		} else {
-			std::cerr << "recv failed: " << WSAGetLastError() << std::endl;
-		}
-		delete[] buffer;
-		return "";
 	}
+
 
 } // namespace Networking

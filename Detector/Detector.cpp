@@ -104,21 +104,21 @@ namespace ImgProcess {
                     auto roi = binary_img(rect);
                     cv::imshow("roi",roi);
 
-                    cv::Rect left_roi(25, roi.rows / 2-25, 50, 50);
-                    cv::Mat left_sub = roi(left_roi);
-                    cv::imshow("roil",left_sub);
+					cv::Rect left_roi(0, roi.rows / 2 - 25, 50, 50); // 从左上角开始，高度向上下扩展25像素
+	                cv::Mat left_sub = roi(left_roi);
+	                cv::imshow("roil", left_sub);
 
 
-                    cv::Rect right_roi(roi.cols - 50, roi.rows / 2 - 25, 50, 50);
-                    cv::Mat right_sub = roi(right_roi);
-                    cv::imshow("roir",right_sub);
+	                cv::Rect right_roi(roi.cols - 50, roi.rows / 2 - 25, 50, 50); // 从右侧开始，高度向上下扩展25像素
+	                cv::Mat right_sub = roi(right_roi);
+	                cv::imshow("roir", right_sub);
 
                     cv::Scalar left_mean = cv::mean(left_sub);
                     cv::Scalar right_mean = cv::mean(right_sub);
 
                     pair.type = left_mean[0] > right_mean[0] ? LEFT : RIGHT;
-                    std::cout<<"fuck"<<pair.type<<std::endl;
-                    cv::waitKey(500);
+                    std::cout<<"box"<<pair.type<<std::endl;
+                    cv::waitKey(1);
                     Pairs.emplace_back(pair);
 
                 }

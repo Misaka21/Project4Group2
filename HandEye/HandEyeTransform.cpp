@@ -37,8 +37,8 @@ namespace Transform {
 			}
 			cam_x=corners[4].x;
 			cam_y=corners[4].y;
-			cv::namedWindow("Detected Corners with Coordinates", cv::WINDOW_NORMAL);
-			cv::resizeWindow("Detected Corners with Coordinates", 1518, 2012);
+			//cv::namedWindow("Detected Corners with Coordinates", cv::WINDOW_NORMAL);
+			//cv::resizeWindow("Detected Corners with Coordinates", 1518, 2012);
 			cv::imshow("Detected Corners with Coordinates", image);
 			cv::waitKey(1);
 		} else {
@@ -61,6 +61,9 @@ namespace Transform {
 			std::cin>>arm_y;
 
 			// 将新坐标加入列表
+			printf("  - id: %d",this->n);
+			printf("    Camera: [%f, %f]",cam_x,cam_y);
+			printf("    Arm: [%f, %f]",arm_x,arm_y);
 			Eigen::Matrix<float, 2, 1> camMatrix, armMatrix;
 			camMatrix << cam_x, cam_y;
 			armMatrix << arm_x, arm_y;
