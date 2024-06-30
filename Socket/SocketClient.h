@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 #pragma comment(lib, "Ws2_32.lib")
 namespace Networking {
@@ -23,6 +24,7 @@ namespace Networking {
 		bool connect();
 		void disconnect();
 		//函数重载,你想发啥发啥
+		bool send(const cv::Mat& mat);
 		bool send(const std::string& message);
 		bool send(const std::vector<uint8_t>& data);
 

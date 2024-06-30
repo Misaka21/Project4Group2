@@ -118,6 +118,43 @@ namespace Networking {
 		}
 
 	}
+	bool SocketClient::send(const cv::Mat& mat) {
+		if (!isConnected) {
+			std::cerr << "[ERROR]: [Socket]: Not connected to any server." << std::endl;
+			return false;
+		}
+
+		if (mat.empty()) {
+			std::cerr << "[ERROR]: [Socket]: Mat to send is empty." << std::endl;
+			return false;
+		}
+
+		// Serialize the cv::Mat data into a byte array.
+		int matType = mat.type();
+		int matCols = mat.cols;
+		int matRows = mat.rows;
+		int dataSize = mat.cols * mat.rows * mat.elemSize();
+
+		// Send mat dimensions and type first.
+		std::vector<int> header = {matType, matCols, matRows, dataSize};
+		int headerSize = sizeof(int) * header.size();
+		if (::send(sock, reinterpret_cast<const char*>(header.data()), headerSize, 0) == SOCKET_ERROR) {
+			std::cerr << "[ERROR]: [Socket]: Send failed (header): " << WSAGetLastError() << std::endl;
+			disconnect();
+			return false;
+		}
+
+		// Send the actual data.
+		if (::send(sock, reinterpret_cast<const char*>(mat.data), dataSize, 0) == SOCKET_ERROR) {
+			std::cerr << "[ERROR]: [Socket]: Send failed (data): " << WSAGetLastError() << std::endl;
+			disconnect();
+			return false;
+		}
+
+		std::cout << "[INFO]: [Socket]: Successfully sent cv::Mat." << std::endl;
+		return true;
+	}
+
 
 
 } // namespace Networking

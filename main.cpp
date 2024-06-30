@@ -1,5 +1,4 @@
 ﻿#include"main.h"
-#define DEFAULT_PORT "465"
 
 
 Networking::SocketClient sock2pc("172.16.24.157",465);
@@ -67,39 +66,52 @@ void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFram
 
 //#pragma comment(lib,"ws2_32.lib")
 int main() {
-	mod2plc.connect();
-	//sock2pc.connect ();
+
+	//sock2pc.connect();
 	//sock2pc.connect();
 	//sock2pc.send ("fuck");
 
-	//sock2pc.receive(1);
+
 	//sock2pc.send ("20240404");
 
 
 	//std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
 	//sock2pc.send (sentt);
-	//mod2plc.writeRegister (0,1);
-
-	//std::cout<<Pairs[2].center.x<<" "<<Pairs[2].center.y<<" "<<Pairs[2].center.x*0.19+524.81<<" "<<Pairs[2].center.y*-0.19+586.67<<std::endl;
-//	mod2plc.writeRegister (1,Networking::swapHighBite ((uint16_t )(Pairs[0].center.x*0.19+524.81)));
-//	mod2plc.writeRegister (2,Networking::swapHighBite ((uint16_t )(Pairs[0].center.y*-0.19+586.67)));
+	mod2plc.connect();
 
 
-//
+
 	//mod2plc.writeRegister (2,255);
 
 	CAM_INFO camInfo;
-	camInfo.setCamID (0)//设置相机ID
-			.setWidth (4024)//设置图像宽度
-			.setHeight (3036)//设置图像高度
-			.setOffsetX (0)//设置图像X偏移
-			.setOffsetY (0)//设置图像Y偏移
-			.setExpTime (8000)//设置曝光时间
-			.setGain (18)//设置增益
-			.setHeartTimeOut (500)//设置超时时间
-			.setTrigger (SOFTWARE)//设置触发方式
-			.setGamma (GAMMA_OFF);//设置Gamma模式
-	HikCam cam (camInfo);
+	camInfo.setCamID(0)//设置相机ID
+			.setWidth(4024)//设置图像宽度
+			.setHeight(3036)//设置图像高度
+			.setOffsetX(0)//设置图像X偏移
+			.setOffsetY(0)//设置图像Y偏移
+			.setExpTime(6000)//设置曝光时间
+			.setGain(18)//设置增益
+			.setHeartTimeOut(500)//设置超时时间
+			.setTrigger(SOFTWARE)//设置触发方式
+			.setGamma(GAMMA_OFF);//设置Gamma模式
+	HikCam cam(camInfo);
+	//sock2pc.connect();
+	//sock2pc.connect();
+	//sock2pc.send ("fuck");
+
+
+	//sock2pc.send ("20240404");
+
+
+	//std::vector <uint8_t> sentt={2,0,2,4,0,4,0,4};
+	//sock2pc.send (sentt);
+	//mod2plc.connect();
+
+
+
+	//mod2plc.writeRegister (2,255);
+
+
 //
 	while (1) {
 		//mod2plc.writeRegister (2,255);
